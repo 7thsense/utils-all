@@ -1,0 +1,77 @@
+<configuration debug="true">
+    <conversionRule conversionWord="coloredLevel" converterClass="play.api.libs.logback.ColoredLevel"/>
+
+    <appender name="FILE" class="ch.qos.logback.core.FileAppender">
+        <filter class="ch.qos.logback.classic.filter.ThresholdFilter">
+            <level>TRACE</level>
+        </filter>
+        <file>target/tests.log</file>
+        <encoder>
+            <pattern>%date %level %logger{15} [%file.%line] - %message%n</pattern>
+        </encoder>
+    </appender>
+
+
+    <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+        <filter class="ch.qos.logback.classic.filter.ThresholdFilter">
+            <level>WARN</level>
+        </filter>
+        <encoder>
+            <pattern>%coloredLevel %logger{15} [%file.%line] - %message%n</pattern>
+        </encoder>
+    </appender>
+
+    <root level="INFO">
+        <appender-ref ref="STDOUT"/>
+        <appender-ref ref="FILE"/>
+    </root>
+
+    <logger name="org.reflections" level="WARN"/>
+    <logger name="akkaGuice" level="WARN"/>
+    <logger name="akka.event.slf4j" level="WARN"/>
+    <logger name="play" level="DEBUG"/>
+    <logger name="slick.jdbc.JdbcBackend.statement" level="TRACE"/>
+    <logger name="java.sql.Connection" level="TRACE"/>
+    <logger name="application" level="DEBUG"/>
+    <logger name="org.apache.commons" level="WARN"/>
+    <logger name="org.elasticsearch" level="WARN"/>
+
+    <logger name="com.telepathdata" level="TRACE"/>
+    <logger name="com.theseventhsense" level="TRACE"/>
+    <logger name="com.theseventhsense.testing" level="TRACE"/>
+    <logger name="com.telepathdata.services.profile.slick" level="TRACE"/>
+    <!--<logger name="com.telepathdata.models.managers.elasticsearch.CommunicationProfileManager" level="WARN"/>-->
+    <!--<logger name="ss.modules.connectors" level="DEBUG"/>-->
+    <!--<logger name="ss.modules.engine" level="DEBUG"/>-->
+    <!--<logger name="ss.modules.prism" level="DEBUG"/>-->
+    <!--<logger name="ss.utils.testing" level="INFO"/>-->
+    <!--<logger name="com.telepathdata.fixtures" level="DEBUG"/>-->
+    <!--<logger name="com.telepathdata.TelepathGlobal" level="DEBUG"/>-->
+    <!--<logger name="ss.modules.lists.ListService" level="DEBUG"/>-->
+    <!--<logger name="ss.modules.lists.ListActor" level="DEBUG"/>-->
+    <logger name="ss.modules.accounts.AccountsActor" level="DEBUG"/>
+    <logger name="ss.modules.accounts.recurly.RecurlySubscriptionManager" level="INFO"/>
+    <logger name="ss.modules.connectors.marketo" level="TRACE"/>
+    <logger name="ss.modules.connectors.DeliveryActor" level="DEBUG"/>
+    <logger name="ss.modules.connectors.google.GmailDeliveryService" level="DEBUG"/>
+    <logger name="ss.modules.messages" level="DEBUG"/>-->
+    <logger name="controllers.resources.v1.UsersResource" level="DEBUG"/>
+    <logger name="controllers.resources.v2.SubscriptionsResource" level="DEBUG"/>
+    <logger name="controllers" level="INFO"/>
+    <logger name="ittests" level="TRACE"/>
+    <logger name="audit" level="INFO" />
+p
+    <logger name="com.ning.http.client" level="TRACE"/>
+    <logger name="play.api.libs.ws" level="TRACE"/>
+    <logger name="microsoft.exchange.webservices" level="TRACE"/>
+    <logger name="org.apache.commons.httpclient" level="DEBUG"/>
+    <logger name="httpclient.wire.header" level="WARN"/>
+
+    <logger name="com.sun.management" level="DEBUG"/>
+    <logger name="javax.mail" level="WARN"/>
+    <logger name="com.sun.mail" level="WARN"/>
+    <logger name="org.apache.commons.httpclient.HttpMethodBase" level="ERROR"/>
+    <logger name="org.openqa.selenium.phantomjs" level="WARN"/>
+    <logger name="com.jolbox.bonecp" level="ERROR"/>
+
+</configuration>

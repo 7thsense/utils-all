@@ -1,0 +1,17 @@
+package com.theseventhsense.oauth2
+
+import com.theseventhsense.testing.UnitSpec
+
+class OAuth2ProviderSpec extends UnitSpec {
+  val idToken =
+    "eyJhbGciOiJSUzI1NiIsImtpZCI6ImY0MzYwNWRlYzY5YjdmN2U1YThiNWY2ZDIzZjM5YTMwYWE1YWY2ZTcifQ.eyJhenAiOiIxNDE0Mjk3MzEzNjEtdWg4ZHJnOGM4ZG1jbGxzM2dtaWVpaHQzZTBob2NsY2QuYXBwcy5nb29nbGV1c2VyY29udGVudC5jb20iLCJhdWQiOiIxNDE0Mjk3MzEzNjEtdWg4ZHJnOGM4ZG1jbGxzM2dtaWVpaHQzZTBob2NsY2QuYXBwcy5nb29nbGV1c2VyY29udGVudC5jb20iLCJzdWIiOiIxMDY3NDg2MTQ1ODk0OTYxMTIxMjAiLCJoZCI6InRlbGVwYXRoZGF0YS5jb20iLCJlbWFpbCI6ImVyaWtAdGVsZXBhdGhkYXRhLmNvbSIsImVtYWlsX3ZlcmlmaWVkIjp0cnVlLCJhdF9oYXNoIjoiWFJwNHZVVVdnOFJPWEdqVjJ0SkFmUSIsImlzcyI6ImFjY291bnRzLmdvb2dsZS5jb20iLCJpYXQiOjE1MTA5NjE4NjIsImV4cCI6MTUxMDk2NTQ2Mn0.BJKybEKvDsYNobFluO_V0JNrcubJQKKrzAIYgg57hgVhB0DJaPeJK5WcwBm71CJy6Hw5BRIYYlBevROUlVlGe93l_BWHIHDQ3_A49Ks42htB2riZnCX4GYy1gO0j2r88I99dlVlERXhpnHd9B0EktFlR11er1GdzMDFPjSL_Lj4PWxEJL2yeVAjbCyN3n4rBg1SGJSNB77KY_S4bfzz02JQ9XecahAWdqIw_csp5x_CqLknV4MEwsDF8wcjnZhVDvtTJV7Fmc_b-KeomYKf_uCD0Yuy7PIPv4ZqCceTrcm5ClFExcPkB-kvdiZ7ZJuUl0LnBLmKpwt6HLssEZvyIdg"
+  
+  "the google provider" should {
+    "be able to extract values from the id token" in {
+      OAuth2Provider.Google.jwtExtractor(idToken) mustEqual Map(
+        "email" -> "erik@telepathdata.com"
+      )
+    }
+  }
+
+}

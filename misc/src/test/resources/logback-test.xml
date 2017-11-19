@@ -1,0 +1,44 @@
+<configuration debug="false">
+    <conversionRule conversionWord="coloredLevel" converterClass="com.theseventhsense.utils.logging.logback.ColoredLevel"/>
+
+    <appender name="FILE" class="ch.qos.logback.core.FileAppender">
+        <filter class="ch.qos.logback.classic.filter.ThresholdFilter">
+            <level>TRACE</level>
+        </filter>
+        <file>target/tests.log</file>
+        <encoder>
+            <pattern>%date %level %logger{25} [%file.%line] - %message%n</pattern>
+        </encoder>
+    </appender>
+
+
+    <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+        <filter class="ch.qos.logback.classic.filter.ThresholdFilter">
+            <level>WARN</level>
+        </filter>
+        <encoder>
+            <pattern>%coloredLevel %logger{25} [%file.%line] - %message%n</pattern>
+        </encoder>
+        <withJansi>true</withJansi>
+    </appender>
+
+    <root level="INFO">
+        <appender-ref ref="STDOUT"/>
+        <appender-ref ref="FILE"/>
+    </root>
+
+    <logger name="org.reflections" level="WARN"/>
+    <logger name="akkaGuice" level="WARN"/>
+    <logger name="akka.event.slf4j" level="WARN"/>
+    <logger name="play" level="DEBUG"/>
+    <logger name="slick.jdbc.JdbcBackend.statement" level="TRACE"/>
+    <logger name="java.sql.Connection" level="TRACE"/>
+    <logger name="application" level="DEBUG"/>
+    <logger name="org.apache.commons" level="WARN"/>
+    <logger name="org.elasticsearch" level="WARN"/>
+
+    <logger name="com.telepathdata" level="DEBUG"/>
+    <logger name="com.theseventhsense" level="DEBUG"/>
+
+
+</configuration>
