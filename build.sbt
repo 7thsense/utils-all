@@ -10,6 +10,17 @@ lazy val `utils-all` = project
   .aggregate(`utils-cats`.js)
   .aggregate(`utils-core`.jvm)
   .aggregate(`utils-core`.js)
+  .aggregate(`utils-collections`.jvm)
+  .aggregate(`utils-collections`.js)
+  .aggregate(`utils-collections-circe`.jvm)
+  .aggregate(`utils-collections-circe`.js)
+  .aggregate(`utils-collections-mapdb`)
+  .aggregate(`utils-collections-akka`)
+  .aggregate(`utils-datetime`.jvm)
+  .aggregate(`utils-datetime`.js)
+  .aggregate(`utils-datetime-circe`.jvm)
+  .aggregate(`utils-datetime-circe`.js)
+  .aggregate(`utils-datetime-playjson`)
   .aggregate(`utils-logging`.jvm)
   .aggregate(`utils-logging`.js)
   .aggregate(`utils-testing`)
@@ -32,10 +43,9 @@ lazy val `utils-testing` = project
 lazy val `utils-core` = crossProject
   .crossType(CrossType.Pure)
   .in(file("core"))
-  .dependsOn(`utils-datetime-circe`)
+  .dependsOn(`utils-datetime`)
   .settings(
-    libraryDependencies ++= Dependencies.Circe.value ++
-      Dependencies.ScalaTest.value
+    libraryDependencies ++= Dependencies.ScalaTest.value
   )
   //.settings(libraryDependencies += Dependencies.SSDateTime.value)
   .settings(Common.settings)
@@ -119,15 +129,14 @@ lazy val `utils-play` =
     .in(file("play"))
     .settings(Common.settings)
 
-//lazy val `utils-spark` =
-//  project
-//    .in(file("spark"))
-//    .settings(Common.sparkSettings)
-//    .dependsOn(`utils-logging`.jvm)
-//    .dependsOn(`utils-datetime-circe`.jvm)
-//    .settings(libraryDependencies ++= Dependencies.Akka.value)
-//    .settings(libraryDependencies ++= Dependencies.Spark.value)
-//    .settings(libraryDependencies ++= Dependencies.SSDateTimeCirce.value)
+lazy val `utils-spark` =
+  project
+    .in(file("spark"))
+    .settings(Common.sparkSettings)
+    .dependsOn(`utils-logging`.jvm)
+    .dependsOn(`utils-datetime-circe`.jvm)
+    .settings(libraryDependencies ++= Dependencies.Akka.value)
+    .settings(libraryDependencies ++= Dependencies.Spark.value)
 
 lazy val `utils-play-testing` =
   project
@@ -184,5 +193,50 @@ lazy val `utils-oauth2` = project
   .settings(libraryDependencies ++= Dependencies.PlayMockWs.value)
   .settings(libraryDependencies ++= Dependencies.PureConfig.value)
 
+lazy val `utils-collections` = crossProject
+  .crossType(CrossType.Pure)
+  .in(file("./collections/core"))
+  .settings(Common.sharedSettings)
+  .jvmSettings(Common.settings)
+  .jsSettings(Common.jsSettings)
 
+lazy val `utils-collectionsJVM` = `utils-collections`.jvm
 
+lazy val `utils-collectionsJS` = `utils-collections`.js
+
+lazy val `utils-collections-circe` = crossProject
+  .crossType(CrossType.Pure)
+  .in(file("./collections/circe"))
+  .dependsOn(`utils-collections`)
+  .settings(name := "utils-collections-circe")
+  .settings(Common.sharedSettings)
+  .jvmSettings(Common.settings)
+  .jsSettings(Common.jsSettings)
+  .settings(libraryDependencies ++= Dependencies.Circe.value)
+  .settings(libraryDependencies ++= Dependencies.ScalaTest.value)
+
+lazy val `utils-collections-circeJVM` = `utils-collections-circe`.jvm
+
+lazy val `utils-collections-circeJS` = `utils-collections-circe`.js
+
+lazy val `utils-collections-spark` = project
+  .in(file("./collections/spark"))
+  .dependsOn(`utils-collections`.jvm)
+  .settings(Common.sparkSettings)
+  .settings(libraryDependencies ++= Dependencies.Spark.value)
+
+lazy val `utils-collections-mapdb` = project
+  .in(file("./collections/mapdb"))
+  .settings(Common.settings)
+  .dependsOn(`utils-collections`.jvm)
+  .dependsOn(`utils-collections-circe`.jvm % "provided")
+  .settings(libraryDependencies ++= Dependencies.MapDB.value)
+  .settings(libraryDependencies ++= Dependencies.ScalaTest.value)
+
+lazy val `utils-collections-akka` = project
+  .in(file("./collections/akka"))
+  .settings(Common.settings)
+  .dependsOn(`utils-collections`.jvm)
+  .dependsOn(`utils-collections-circe`.jvm % "provided")
+  .settings(libraryDependencies ++= Dependencies.Akka.value)
+  .settings(libraryDependencies ++= Dependencies.ScalaTest.value)

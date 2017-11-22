@@ -22,10 +22,10 @@ object Dependencies {
     val BooPickle = "1.1.0"
     val Bootstrap4 = "4.0.0-alpha.3"
     val BouncyCastle = "1.46"
-    val Cats = "0.9.0"
+    val Cats = "1.0.0-RC1"
     val CatsScalatest = "2.2.0"
     val Chill = "0.9.2"
-    val Circe = "0.8.0"
+    val Circe = "0.9.0-M2"
     val CloudWatchMetrics = "0.4.0"
     val CommonsHttp = "4.5.2"
     val CommonsIo = "2.4"
@@ -72,9 +72,6 @@ object Dependencies {
     val ScalaJsAngular = "0.8.0.ss.1"
     val ScalaJsCharts = "0.4"
     val ScalaJsDom = "0.9.3"
-    val ScalaJavaLocales = "0.5.2-cldr31"
-    val ScalaJavaTime = "2.0.0-M10"
-    val ScalaJsJavaTime = "0.1.0"
     val ScalaJsJquery = "0.8.0"
     val ScalaJsJQueryFacade = "1.0-RC6"
     val ScalaJsMoment = "0.9.0"
@@ -116,9 +113,6 @@ object Dependencies {
 
   val Akka = Def.setting(
     Seq(
-      "com.theseventhsense.ec2akka" %% "ec2-akka" % Versions.AkkaAWSECS,
-      "com.theseventhsense.ec2akka" %% "ecs-akka" % Versions.AkkaAWSECS,
-      "com.theseventhsense.ec2akka" %% "aws-akka" % Versions.AkkaAWSECS,
       "com.typesafe.akka" %% "akka-actor" % Versions.Akka,
       "com.typesafe.akka" %% "akka-cluster" % Versions.Akka,
       "com.typesafe.akka" %% "akka-cluster-sharding" % Versions.Akka,
@@ -173,15 +167,11 @@ object Dependencies {
     Def.setting(Seq("org.alluxio" % "alluxio-core-client" % Versions.Alluxio))
 
   val Ammonite = Def.setting(
-    Seq(
-      "com.lihaoyi" % "ammonite" % "1.0.3" % "test" cross CrossVersion.full
-    )
+    Seq("com.lihaoyi" % "ammonite" % "1.0.3" % "test" cross CrossVersion.full)
   )
 
-  val Auth0JavaJwt = Seq(
-    "com.auth0" % "java-jwt" % "3.2.0",
-    "com.auth0" % "jwks-rsa" % "0.2.0"
-  )
+  val Auth0JavaJwt =
+    Seq("com.auth0" % "java-jwt" % "3.2.0", "com.auth0" % "jwks-rsa" % "0.2.0")
 
   val Avro4s =
     Def.setting(Seq("com.sksamuel.avro4s" %% "avro4s-core" % Versions.Avro4s))
@@ -209,7 +199,7 @@ object Dependencies {
     Seq("org.bouncycastle" % "bcprov-jdk16" % Versions.BouncyCastle)
   )
 
-  val Cats = Def.setting(Seq("org.typelevel" %%% "cats" % Versions.Cats))
+  val Cats = Def.setting(Seq("org.typelevel" %%% "cats-core" % Versions.Cats))
 
   val CatsScalatestCompile = Def.setting(
     Seq("com.ironcorelabs" %% "cats-scalatest" % Versions.CatsScalatest)
@@ -221,11 +211,7 @@ object Dependencies {
     )
   )
 
-  val Chill = Def.setting(
-    Seq(
-      "com.twitter" %% "chill-akka" % Versions.Chill
-    )
-  )
+  val Chill = Def.setting(Seq("com.twitter" %% "chill-akka" % Versions.Chill))
   val Circe = Def.setting(
     Seq(
       "io.circe" %%% "circe-core" % Versions.Circe,
@@ -258,9 +244,7 @@ object Dependencies {
     )
   )
 
-  val Deadbolt2 = Seq(
-      "be.objectify" %% "deadbolt-scala" % "2.6.0"
-  )
+  val Deadbolt2 = Seq("be.objectify" %% "deadbolt-scala" % "2.6.0")
 
   val Diode = Def.setting(
     Seq(
@@ -296,13 +280,9 @@ object Dependencies {
     )
   )
 
-  val Hasher = Def.setting(Seq(
-    "com.roundeights" %% "hasher" % Versions.Hasher
-  ))
+  val Hasher = Def.setting(Seq("com.roundeights" %% "hasher" % Versions.Hasher))
 
-  val JavaxMail = Def.setting(Seq(
-    "javax.mail" % "mail" % Versions.JavaxMail
-  ))
+  val JavaxMail = Def.setting(Seq("javax.mail" % "mail" % Versions.JavaxMail))
 
   val JBCrypt = Def.setting(Seq("org.mindrot" % "jbcrypt" % Versions.JBCrypt))
 
@@ -346,9 +326,7 @@ object Dependencies {
     )
   )
 
-  val PPrint = Def.setting(Seq(
-    "com.lihaoyi" %%% "pprint" % Versions.PPrint
-  ))
+  val PPrint = Def.setting(Seq("com.lihaoyi" %%% "pprint" % Versions.PPrint))
 
   val PureConfig = Def.setting(
     Seq(
@@ -386,64 +364,9 @@ object Dependencies {
     Seq("com.beachape" %% "sparkka-streams" % Versions.SparkkaStreams)
   )
 
-  //  val SpringSecurity = Def.setting(
-  //    Seq(
-  //          "org.springframework.security" % "spring-security-web" % Versions.SpringSecurity,
-  //      "org.springframework.security" % "spring-security-core"   % Versions.SpringSecurity,
-  //      "org.springframework.security" % "spring-security-config" % Versions.SpringSecurity
-  //    ))
-  //
-  //  val SpringSecurityAuth0 = Def.setting(
-  //    Seq(
-  //      "com.auth0" % "auth0-spring-security-api" % Versions.SpringSecurityAuth0
-  //    )
-  //  )
-
   val Squants = Def.setting(Seq("com.squants" %% "squants" % Versions.Squants))
 
-  val SSDateTime = Def.setting(
-    Seq("com.theseventhsense" %%% "utils-datetime" % Versions.SSDateTime)
-  )
-
-  val SSCollections = Def.setting(
-    Seq("com.theseventhsense" %%% "utils-collections" % Versions.SSCollections)
-  )
-
-  val SSCollectionsSpark = Def.setting(
-    Seq(
-      "com.theseventhsense" %% "utils-collections-spark" % Versions.SSCollections
-    )
-  )
-
-  val SSCollectionsMapDB = Def.setting(
-    Seq(
-      "com.theseventhsense" %% "utils-collections-mapdb" % Versions.SSCollections
-    )
-  )
-
-  val SSCollectionsCirce = Def.setting(
-    Seq(
-      "com.theseventhsense" %% "utils-collections-circe" % Versions.SSCollections
-    )
-  )
-
-  val SSDateTimeCirce = Def.setting(
-    Seq("com.theseventhsense" %%% "utils-datetime-circe" % Versions.SSDateTime)
-  )
-
-  val SSDateTimePlayJson = Def.setting(
-    Seq(
-      "com.theseventhsense" %%% "utils-datetime-playjson" % Versions.SSDateTime
-    )
-  )
-
-  val MacWire = Def.setting(
-    Seq(
-      "com.softwaremill.macwire" %%% "macros" % Versions.MacWire % "provided",
-      "com.softwaremill.macwire" %%% "util" % Versions.MacWire,
-      "com.softwaremill.macwire" %%% "proxy" % Versions.MacWire
-    )
-  )
+  val MapDB = Def.setting(Seq("org.mapdb" % "mapdb" % "1.0.9"))
 
   val Mockito = Def.setting(
     Seq(
@@ -480,33 +403,20 @@ object Dependencies {
 
   val Parquet = Def.setting(Seq("com.twitter" % "parquet" % Versions.Parquet))
 
-  val PlayCache = Def.setting(
-    Seq(
-      "com.typesafe.play" %% "play-cache" % Versions.Play
-    )
-  )
+  val PlayCache =
+    Def.setting(Seq("com.typesafe.play" %% "play-cache" % Versions.Play))
 
-  val PlayDb = Def.setting(
-    Seq(
-      "com.typesafe.play" %% "play-db" % Versions.Play
-    )
-  )
+  val PlayDb =
+    Def.setting(Seq("com.typesafe.play" %% "play-db" % Versions.Play))
 
-  val PlaySlick = Def.setting(Seq(
-    "com.typesafe.play" %% "play-slick" % "3.0.1"
-  ))
+  val PlaySlick =
+    Def.setting(Seq("com.typesafe.play" %% "play-slick" % "3.0.1"))
 
-  val PlayJson = Def.setting(
-    Seq(
-      "com.typesafe.play" %% "play-json" % Versions.Play
-    )
-  )
+  val PlayJson =
+    Def.setting(Seq("com.typesafe.play" %% "play-json" % Versions.Play))
 
-  val PlayWs = Def.setting(
-    Seq(
-      "com.typesafe.play" %% "play-ws" % Versions.Play
-    )
-  )
+  val PlayWs =
+    Def.setting(Seq("com.typesafe.play" %% "play-ws" % Versions.Play))
 
   val PostgresDriver =
     Def.setting(Seq("org.postgresql" % "postgresql" % Versions.PostgresDriver))
@@ -524,11 +434,8 @@ object Dependencies {
   val RedisScala =
     Def.setting(Seq("com.github.etaty" %% "rediscala" % Versions.RedisScala))
 
-  val ScalaGLM = Def.setting(
-    Seq(
-      "com.github.darrenjw" %% "scala-glm" % Versions.ScalaGLM
-    )
-  )
+  val ScalaGLM =
+    Def.setting(Seq("com.github.darrenjw" %% "scala-glm" % Versions.ScalaGLM))
 
   val ScalaIO = Def.setting(
     Seq(
@@ -548,21 +455,11 @@ object Dependencies {
   val ScalaJsDom =
     Def.setting(Seq("org.scala-js" %%% "scalajs-dom" % Versions.ScalaJsDom))
 
-  val ScalaJavaLocales = Def.setting(
-    Seq(
-      "io.github.cquiroz" %%% "scala-java-locales" % Versions.ScalaJavaLocales
-    )
-  )
+//  val ScalaJavaLocales =
+//    Def.setting(Seq("io.github.cquiroz" %%% "scala-java-locales" % "2.0.0-M12"))
 
-  val ScalaJavaTime = Def.setting(
-    Seq("io.github.cquiroz" %%% "scala-java-time" % Versions.ScalaJavaTime)
-  )
-
-  val ScalaJsJavaTime = Def.setting(
-    Seq(
-      "org.scala-js" %%% "scalajs-java-time" % Versions.ScalaJsJavaTime intransitive ()
-    )
-  )
+  val ScalaJavaTime =
+    Def.setting(Seq("io.github.cquiroz" %%% "scala-java-time" % "2.0.0-M12"))
 
   val ScalaJsJquery = Def.setting(
     Seq(
@@ -676,9 +573,7 @@ object Dependencies {
     Def.setting(Seq("org.threeten" %%% "threetenbp" % Versions.ThreetenBp))
 
   val ScalaLogging = Def.setting(
-    Seq(
-      "com.typesafe.scala-logging" %% "scala-logging" % Versions.ScalaLogging
-    )
+    Seq("com.typesafe.scala-logging" %% "scala-logging" % Versions.ScalaLogging)
   )
 
   val ScalaLoggingSlf4j = Def.setting(

@@ -3,14 +3,10 @@ import sbt._
 import bintray.BintrayKeys._
 
 object Common {
-//  S3cHandler.setupS3Handler()
   val scalaV211 = "2.11.11"
   val scalaV212 = "2.12.4"
   val scalaV = scalaV212
-  //val scalaVTLS212 = "2.12.4-bin-typelevel-4"
-  //val scalaOrg = "org.typelevel"
-  val scalaOrg = "org.scala-lang"
-  val scalaVersions = Seq(scalaV211, scalaV212)
+  val scalaVersions = Seq(scalaV212, scalaV211)
 
   val scalatestVersion: String = Dependencies.Versions.ScalaTest
   val scalatestPlayVersion: String = Dependencies.Versions.ScalaTestPlusPlay
@@ -30,33 +26,16 @@ object Common {
     "-Xfuture",
     "-Xsource:2.12",
     "-Yno-adapted-args",
-//    "-Ywarn-dead-code",        // N.B. doesn't work well with the ??? hole
-    //"-Ywarn-numeric-widen",
     "-Ywarn-value-discard",
     "-Ypartial-unification"
-    //"-Yliteral-types",
-//      "-Ywarn-unused-import", // TODO: re-enable unused-import checking
-//      "-Xcheckinit" // TODO: re-enable -Xcheckinit in dev
-  ) 
-
-  val offlineForkOptions = ForkOptions(envVars = Map("ONLINE" -> "false"))
+  )
 
   val sharedSettings: Seq[Setting[_]] =
     List(
       addCompilerPlugin(
         "org.spire-math" % "kind-projector" % "0.9.4" cross CrossVersion.binary
       ),
-      fork := true,
-      parallelExecution := false,
       isSnapshot := version.value.contains("-SNAPSHOT"),
-      testOptions := Seq(
-        Tests.Argument(
-          TestFrameworks.ScalaTest,
-          "-l",
-          "com.telepathdata.utils.testing.tags.ExternalAPI",
-          "-oDS"
-        )
-      ),
       publishMavenStyle := true,
       bintrayOrganization := Some("7thsense"),
       bintrayVcsUrl := Some("git@github.com:7thsense/utils-all.git"),
@@ -76,7 +55,6 @@ object Common {
 
   val settings: Seq[Setting[_]] = sharedSettings ++ List(
     crossScalaVersions := scalaVersions,
-    scalaOrganization := scalaOrg,
     scalaVersion := scalaV
   )
 
