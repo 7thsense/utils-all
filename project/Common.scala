@@ -5,8 +5,8 @@ import bintray.BintrayKeys._
 object Common {
   val scalaV211 = "2.11.11"
   val scalaV212 = "2.12.4"
-  val scalaV = scalaV212
-  val scalaVersions = Seq(scalaV212, scalaV211)
+  val scalaV = scalaV211
+  val scalaVersions = Seq(scalaV211, scalaV212)
 
   val scalatestVersion: String = Dependencies.Versions.ScalaTest
   val scalatestPlayVersion: String = Dependencies.Versions.ScalaTestPlusPlay

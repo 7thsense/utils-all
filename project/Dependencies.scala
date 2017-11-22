@@ -100,8 +100,6 @@ object Dependencies {
     val SpringSecurity = "4.2.3.RELEASE"
     val SpringSecurityAuth0 = "1.0.0-rc.2"
     val Squants = "0.6.2"
-    val SSDateTime = "0.1.15"
-    val SSCollections = "0.1.13"
     val ThreetenBp = "1.3.3-SNAPSHOT"
     val ScalaLogging = "3.7.2"
     val ScalaLoggingSlf4j = "2.1.2"

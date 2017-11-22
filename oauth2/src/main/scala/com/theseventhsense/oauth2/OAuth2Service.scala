@@ -3,7 +3,7 @@ package com.theseventhsense.oauth2
 import java.net.URLEncoder
 import javax.inject.Inject
 
-import cats.data._
+import cats.data.OptionT
 import cats.implicits._
 import com.theseventhsense.oauth2.OAuth2Codecs._
 import com.theseventhsense.utils.cats._
@@ -15,6 +15,7 @@ import com.theseventhsense.utils.types.SSDateTime
 import io.circe.parser
 import play.api.libs.ws.{WSAuthScheme, WSClient, WSResponse}
 
+import scala.collection.concurrent
 import scala.collection.immutable.ListMap
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -289,10 +290,10 @@ object OAuth2Service extends Logging {
                                  payload: Map[String, Seq[String]])(
     implicit client: WSClient,
     ec: ExecutionContext
-  ): Future[OAuth2TokenResponse] =
-    accessTokenRequest(provider, payload)
-      .map(parseAccessTokenResponse)
-      .flattenEither
+  ): Future[OAuth2TokenResponse] = {
+    val resultFuture = accessTokenRequest(provider, payload)
+    resultFuture.map(parseAccessTokenResponse).flattenEither
+  }
 
   /**
     * If the provider has defined a refreshTokenInfoUrl and we
@@ -533,6 +534,13 @@ object OAuth2Service extends Logging {
     encoded.mkString("?", "&", "")
   }
 
+  /**
+    * A map of outstanding refresh requests. This prevents dogpiling the access server,
+    * instead blocking all the clients and handing them the first future to be requested.
+    */
+  private val refreshFutures: concurrent.Map[OAuth2Id, Future[OAuth2Credential]] =
+    concurrent.TrieMap.empty
+
 }
 
 /**
@@ -547,15 +555,9 @@ object OAuth2Service extends Logging {
 class OAuth2Service @Inject()(providers: Set[OAuth2Provider])(
   implicit oAuth2Persistence: TOAuth2Persistence
 ) extends Logging {
-  logger.debug(s"Initializing with ${providers.map(_.name).mkString(",")}")
+  import OAuth2Service._
 
-  /**
-    * A map of outstanding refresh requests. This prevents dogpiling the access server,
-    * instead blocking all the clients and handing them the first future to be requested.
-    */
-  @volatile private var refreshFutures
-    : Map[OAuth2Id, Future[OAuth2Credential]] =
-    Map.empty
+  logger.debug(s"Initializing with ${providers.map(_.name).mkString(",")}")
 
   /**
     * Get a reference to a provider by name.
@@ -608,12 +610,12 @@ class OAuth2Service @Inject()(providers: Set[OAuth2Provider])(
         val refreshedResponse =
           if (cred.accessExpires.forall(_.isAfter(SSDateTime.Instant.now))) {
             logger.trace(
-              s"Access token for ${cred.id} valid, expires ${cred.accessExpires}"
+              s"Access token for oid${cred.id} valid, expires ${cred.accessExpires}"
             )
             Future.successful((cred, provider))
           } else {
             logger.debug(
-              s"Access token for ${cred.id} expired ${cred.accessExpires}, refreshing $provider"
+              s"Access token for oid${cred.id} expired ${cred.accessExpires}, refreshing via ${provider.tokenUrl}"
             )
             refresh(id).map { cred =>
               (cred, provider)
@@ -677,39 +679,55 @@ class OAuth2Service @Inject()(providers: Set[OAuth2Provider])(
   def refresh(
     oAuth2Id: OAuth2Id
   )(implicit client: WSClient, ec: ExecutionContext): Future[OAuth2Credential] =
-    synchronized {
-      if (refreshFutures.contains(oAuth2Id)) {
-        refreshFutures(oAuth2Id)
-      } else {
+    refreshFutures.synchronized(
+      refreshFutures.getOrElseUpdate(
+        oAuth2Id,
         oAuth2Persistence.get(oAuth2Id).flatMap { credOpt =>
-          logger.debug(s"Refreshing credentials for $credOpt")
-          val optRefresh: Option[Future[OAuth2Credential]] = credOpt.flatMap {
-            cred =>
-              knownProvider(cred.providerName).map { baseProvider =>
-                val provider = cred.credentialsOverride match {
-                  case None    => baseProvider
-                  case Some(o) => baseProvider.withOverride(o)
-                }
-                OAuth2Service
-                  .refresh(provider, cred)
-                  .flatMap { refreshed =>
-                    oAuth2Persistence.save(refreshed).map { saved =>
-                      refreshFutures -= oAuth2Id
-                      saved
+          logger.debug(s"Refreshing credentials for oid${oAuth2Id.id} $credOpt")
+          credOpt
+            .flatMap {
+              cred =>
+                knownProvider(cred.providerName).map {
+                  baseProvider =>
+                    val provider = cred.credentialsOverride match {
+                      case None    => baseProvider
+                      case Some(o) => baseProvider.withOverride(o)
                     }
-                  }
-              }
-          }
-          val future = optRefresh.getOrElse(
-            Future.failed(
-              new OAuth2Exception(s"Unable to locate credential for $oAuth2Id")
+                    OAuth2Service
+                      .refresh(provider, cred)
+                      .flatMap {
+                        refreshed =>
+                          oAuth2Persistence
+                            .save(refreshed)
+                            .map { saved =>
+                              logger.trace(
+                                s"Refreshed credentials for oid${oAuth2Id.id}, saving and clearing queue"
+                              )
+                              refreshFutures -= oAuth2Id
+                              saved
+                            }
+                            .recoverWith {
+                              case e =>
+                                logger.debug(
+                                  s"Failed to refresh credentials for oid${oAuth2Id.id}, clearing queue",
+                                  e
+                                )
+                                refreshFutures -= oAuth2Id
+                                Future.failed(e)
+                            }
+                      }
+                }
+            }
+            .getOrElse(
+              Future.failed(
+                new OAuth2Exception(
+                  s"Unable to locate credential for oid$oAuth2Id"
+                )
+              )
             )
-          )
-          refreshFutures += (oAuth2Id -> future)
-          future
         }
-      }
-    }
+      )
+    )
 
   /**
     * Create or update a stored client credential.
@@ -770,7 +788,7 @@ class OAuth2Service @Inject()(providers: Set[OAuth2Provider])(
                            code: String)(
     implicit ec: ExecutionContext,
     wsClient: WSClient
-  ): Future[OAuth2TokenResponse] =
+  ): Future[OAuth2TokenResponse] = {
     OAuth2Service.codeGrantAccessToken(provider, callbackUrl, code)
-
+  }
 }
