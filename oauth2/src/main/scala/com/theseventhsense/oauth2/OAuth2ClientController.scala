@@ -2,7 +2,7 @@ package com.theseventhsense.oauth2
 
 import javax.inject.{Inject, Named}
 
-import cats.data.OptionT
+import cats.data.{EitherT, OptionT}
 import cats.implicits._
 import com.theseventhsense.oauth2.OAuth2Codecs._
 import com.theseventhsense.utils.logging.Logging
@@ -330,15 +330,20 @@ class OAuth2ClientController @Inject()(
   private def handleCallbackSuccess(
     state: OAuth2State,
     response: OAuth2TokenResponse
-  ): Future[Result] = {
+  ): Future[Result] =
     (for {
-      creds <- OptionT(oAuth2Service.createOrUpdateCredentials(state, response))
-      refreshToken <- OptionT.fromOption[Future](creds.refreshToken)
-      provider <- OptionT.fromOption[Future](
-        oAuth2Service.knownProvider(creds.providerName)
+      creds <- EitherT(oAuth2Service.createOrUpdateCredentials(state, response))
+      provider <- EitherT.fromOption[Future](
+        oAuth2Service.knownProvider(creds.providerName),
+        s"Unknown provider ${creds.providerName}"
       )
-      infoParams <- OptionT.liftF(
-        OAuth2Service.refreshTokenInfo(provider, refreshToken)
+      infoParams <- EitherT.liftF[Future, String, Map[String, String]](
+        creds.refreshToken match {
+          case Some(refreshToken) =>
+            OAuth2Service.refreshTokenInfo(provider, refreshToken)
+          case None =>
+            Future.successful(Map.empty[String, String])
+        }
       )
     } yield
       if (state.bindUrl.isDefined) {
@@ -355,15 +360,13 @@ class OAuth2ClientController @Inject()(
           .discardingCookies(discardingCookie)
       } else {
         Ok(creds.asJson)
-      }).getOrElse(
-      InternalServerError(
-        Map(
-          "error" -> "server_error",
-          "message" -> "Unable to process credentials"
-        ).asJson
-      )
-    )
-  }
+      }).value.map {
+      case Right(result) => result
+      case Left(error) =>
+        InternalServerError(
+          Map("error" -> "server_error", "message" -> error).asJson
+        )
+    }
 
   /**
     * No code was provided and no fallback configured. Error out.

@@ -224,23 +224,23 @@ object OAuth2Service extends Logging {
                                         response: OAuth2TokenResponse)(
     implicit ec: ExecutionContext,
     oAuth2Persistence: TOAuth2Persistence
-  ): Future[Option[OAuth2Credential]] = {
-    val existingCredentialsFutOpt = oauth2State.oAuth2Id match {
+  ): Future[Either[String, OAuth2Credential]] = {
+    val existingCredentialsFutOpt: Future[Either[String, OAuth2Credential]] = oauth2State.oAuth2Id match {
       case None =>
-        Future.successful(None)
+        Future.successful(Either.left("No oauth2 credentials found"))
       case Some(id) =>
         logger.trace(
           s"Loading existing OAuth2 credentials for ${oauth2State.oAuth2Id} - $id"
         )
-        oAuth2Persistence.get(id)
+        oAuth2Persistence.get(id).map(Either.fromOption(_, s"Error loading oAuth2Id $id"))
     }
     existingCredentialsFutOpt.flatMap {
-      case None =>
+      case Left(e) =>
         logger.trace(s"Creating OAuth2 credentials for ${oauth2State.oAuth2Id}")
-        createCredentials(oauth2State, response).map(Option(_))
-      case Some(cred: OAuth2Credential) =>
+        createCredentials(oauth2State, response).map(Either.right)
+      case Right(cred: OAuth2Credential) =>
         logger.trace(s"Updating OAuth2 credentials for ${oauth2State.oAuth2Id}")
-        updateCredentials(cred.update(response)).map(Option(_))
+        updateCredentials(cred.update(response)).map(Either.right)
     }
   }
 
@@ -739,7 +739,7 @@ class OAuth2Service @Inject()(providers: Set[OAuth2Provider])(
   def createOrUpdateCredentials(
     state: OAuth2State,
     oAuth2TokenResponse: OAuth2TokenResponse
-  )(implicit ec: ExecutionContext): Future[Option[OAuth2Credential]] =
+  )(implicit ec: ExecutionContext): Future[Either[String, OAuth2Credential]] =
     OAuth2Service.createOrUpdateCredentials(state, oAuth2TokenResponse)
 
   /**
