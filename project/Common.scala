@@ -3,7 +3,7 @@ import sbt._
 import bintray.BintrayKeys._
 
 object Common {
-  val scalaV211 = "2.11.11"
+  val scalaV211 = "2.11.12"
   val scalaV212 = "2.12.4"
   val scalaV = scalaV211
   val scalaVersions = Seq(scalaV211, scalaV212)
