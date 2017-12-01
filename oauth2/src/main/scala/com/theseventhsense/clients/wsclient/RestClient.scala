@@ -10,7 +10,13 @@ import com.theseventhsense.utils.retry.NoOpRetryStrategy
 import com.theseventhsense.utils.throttle.Throttle
 import io.circe.{Decoder, parser}
 import play.api.libs.json._
-import play.api.libs.ws.{BodyWritable, InMemoryBody, WSClient, WSRequest, WSResponse}
+import play.api.libs.ws.{
+  BodyWritable,
+  InMemoryBody,
+  WSClient,
+  WSRequest,
+  WSResponse
+}
 import play.api.mvc.{Codec, MultipartFormData}
 
 import scala.concurrent.{ExecutionContext, Future}
@@ -165,13 +171,13 @@ class RestClient(
           logger.trace(s"loaded $url: ${response.body.take(2048)}")
           parseResponse[T](request, response) match {
             case Left(t) =>
-              logger.trace(
-                s"Failed parsing $url:\n${t.getMessage}\n${response.body}"
+              val ex = RestClientException.DecodeFailure(
+                url,
+                response.body,
+                t.getMessage
               )
-              Future.failed(
-                RestClientException
-                  .DecodeFailure(url, response.body, t.getMessage)
-              )
+              logger.trace(ex.detailedMessage)
+              Future.failed(ex)
             case Right(x) =>
               Future.successful(x)
           }

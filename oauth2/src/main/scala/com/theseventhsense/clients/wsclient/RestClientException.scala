@@ -19,6 +19,10 @@ object RestClientException {
       extends RestClientException {
     override def getMessage: String =
       s"Failure decoding response from $url: $message"
+
+    def detailedMessage: String =
+        s"Failed parsing $url:\n$message\n$body"
+
   }
 
   case class Unknown(override val url: String, message: String)
