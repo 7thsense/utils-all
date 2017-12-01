@@ -1,0 +1,7 @@
+install: true
+language: scala
+scala:
+  - 2.11.8
+sbt_args: -no-colors
+jdk:
+  - oraclejdk8
