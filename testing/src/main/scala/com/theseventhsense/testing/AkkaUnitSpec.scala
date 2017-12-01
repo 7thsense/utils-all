@@ -39,7 +39,7 @@ object AkkaUnitSpec {
         "akka.remote.netty.tcp.port" -> "0"
       )
       .asJava
-    ConfigFactory.load().withFallback(ConfigFactory.parseMap(configMap))
+    ConfigFactory.parseMap(configMap).withFallback(ConfigFactory.load())
   }
 
 }
