@@ -5,12 +5,12 @@ import com.theseventhsense.utils.logging.Logging
 import com.theseventhsense.utils.persistence.db.HasDatabaseConfig
 import org.scalatest.BeforeAndAfterAll
 import org.scalatest.concurrent.IntegrationPatience
-import slick.basic.BasicProfile
+import slick.jdbc.JdbcProfile
 
-abstract class SlickSpec[P <: BasicProfile]
+abstract class SlickSpec[P <: JdbcProfile]
     extends AkkaUnitSpec
-    with Logging
     with HasDatabaseConfig[P]
+    with Logging
     with IntegrationPatience
     with BeforeAndAfterAll {
 

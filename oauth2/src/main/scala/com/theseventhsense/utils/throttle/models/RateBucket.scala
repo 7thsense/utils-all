@@ -24,7 +24,7 @@ case class RateBucket(rate: Rate,
                       var count: Long = 0,
                       var start: SSDateTime.Instant = SSDateTime.now) {
   final val BUFFER = 0.1D
-  final val THRESHOLD = 0.1D
+  final val THRESHOLD = 0.5D
 
   // don't come closer than to within 10% of max
   def updatedStart(

@@ -13,8 +13,8 @@ import slick.jdbc.JdbcProfile
 /**
   * Created by erik on 7/12/2016.
   */
-trait PlayInjectedSlickDBProvider[Profile <: JdbcProfile]
-    extends HasDatabaseConfigProvider[Profile] {
+trait PlayInjectedSlickDBProvider[Profile <: JdbcProfile] {
+  self: HasDatabaseConfigProvider[Profile] =>
   implicit def profileManifest: Manifest[Profile]
 
   class TestDatabaseConfigProvider extends DatabaseConfigProvider {
@@ -33,7 +33,8 @@ trait PlayInjectedSlickDBProvider[Profile <: JdbcProfile]
       bind(classOf[DatabaseConfigProvider]).toInstance(dbConfigProvider)
       bind(classOf[ActorSystem]).toInstance(system)
       bind(classOf[Configuration]).toInstance(Configuration())
-      bind(classOf[DatabaseConfig[Profile]]).toInstance(dbConfigProvider.get[Profile])
+      bind(classOf[DatabaseConfig[Profile]])
+        .toInstance(dbConfigProvider.get[Profile])
     }
 
     @Provides
@@ -46,7 +47,6 @@ trait PlayInjectedSlickDBProvider[Profile <: JdbcProfile]
 //    ): DatabaseConfig[Profile] =
 //      databaseConfigProvider.get[Profile]
   }
-
 
   implicit def injector: Injector =
     new GuiceInjectorBuilder().bindings(new DatabaseModule(system)).build()

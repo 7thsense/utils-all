@@ -142,8 +142,8 @@ object QueryMeta {
       sort = sort,
       sortAsc = sortAsc,
       filename = filename,
-      q = params.get("q").map(_.head),
-      filter = params.get("filter").map(_.head)
+      q = params.get("q").flatMap(_.headOption),
+      filter = params.get("filter").flatMap(_.headOption)
     )
   }
 }

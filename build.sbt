@@ -23,6 +23,8 @@ lazy val `utils-all` = project
   .aggregate(`utils-datetime-playjson`)
   .aggregate(`utils-logging`.jvm)
   .aggregate(`utils-logging`.js)
+  .aggregate(`utils-persistence`.jvm)
+  .aggregate(`utils-persistence`.js)
   .aggregate(`utils-testing`)
   .aggregate(`utils-play`)
   .aggregate(`utils-play-testing`)
@@ -62,9 +64,9 @@ lazy val `utils-datetime` = crossProject
   .jsSettings(Common.jsSettings: _*)
   //  .enablePlugins(ScalaJSBundlerPlugin)
   .settings(
-    name := "utils-datetime",
-    libraryDependencies ++= Dependencies.Cats.value ++ Dependencies.ScalaJavaTime.value
-  )
+  name := "utils-datetime",
+  libraryDependencies ++= Dependencies.Cats.value ++ Dependencies.ScalaJavaTime.value
+)
   .jsSettings(libraryDependencies ++= Dependencies.ScalaJsMoment.value)
 
 lazy val `utils-datetime-jvm` = `utils-datetime`.jvm
@@ -124,6 +126,17 @@ lazy val `utils-logging-jvm` = `utils-logging`.jvm
 
 lazy val `utils-logging-js` = `utils-logging`.js
 
+lazy val `utils-persistence` = crossProject
+  .crossType(CrossType.Pure)
+  .in(file("persistence"))
+  .settings(Common.settings)
+  .jsSettings(Common.jsSettings: _*)
+  .settings(libraryDependencies ++= Dependencies.ScalaURI.value)
+
+lazy val `utils-persistence-jvm` = `utils-persistence`.jvm
+
+lazy val `utils-persistence-js` = `utils-persistence`.js
+
 lazy val `utils-play` =
   project
     .in(file("play"))
@@ -142,13 +155,14 @@ lazy val `utils-play-testing` =
   project
     .in(file("play-testing"))
     .settings(Common.settings)
+    .dependsOn(`utils-slick-testing`)
     .settings(libraryDependencies ++= Dependencies.PlaySlick.value)
     .settings(libraryDependencies ++= Dependencies.ScalaTestPlusPlay.value)
 
 lazy val `utils-slick` = project
   .in(file("slick"))
   .settings(Common.settings)
-  .dependsOn(`utils-logging`.jvm, `utils-core`.jvm, `utils-datetime`.jvm)
+  .dependsOn(`utils-logging`.jvm, `utils-core`.jvm, `utils-datetime`.jvm, `utils-persistence`.jvm)
   .settings(parallelExecution in Test := false, fork in Test := true)
   .settings(libraryDependencies ++= Dependencies.Akka.value)
   .settings(libraryDependencies ++= Dependencies.SlickPg.value)

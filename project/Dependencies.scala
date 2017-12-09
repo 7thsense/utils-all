@@ -579,6 +579,9 @@ object Dependencies {
       "com.typesafe.scala-logging" %% "scala-logging-slf4j" % Versions.ScalaLoggingSlf4j
     )
   )
+
+  val ScalaURI = Def.setting(Seq("io.lemonlabs" %%% "scala-uri" % "0.5.0"))
+
   val Univocity =
     Def.setting(Seq("com.univocity" % "univocity-parsers" % Versions.Univocity))
 

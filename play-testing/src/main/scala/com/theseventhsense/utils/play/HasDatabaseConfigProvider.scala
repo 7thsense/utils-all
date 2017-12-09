@@ -1,10 +1,11 @@
 package com.theseventhsense.utils.play
 
-import play.api.db.slick.{DatabaseConfigProvider, HasDatabaseConfig}
-import slick.basic.{BasicProfile, DatabaseConfig}
+import com.theseventhsense.utils.persistence.db.HasDatabaseConfig
+import play.api.db.slick.DatabaseConfigProvider
+import slick.basic.DatabaseConfig
+import slick.jdbc.JdbcProfile
 
-trait HasDatabaseConfigProvider[P <: BasicProfile]
-    extends HasDatabaseConfig[P] {
+trait HasDatabaseConfigProvider[P <: JdbcProfile] extends HasDatabaseConfig[P] {
 
   /** The provider of a Slick `DatabaseConfig` instance.*/
   protected def dbConfigProvider: DatabaseConfigProvider
