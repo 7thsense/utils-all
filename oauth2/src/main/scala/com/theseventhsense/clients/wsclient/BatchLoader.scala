@@ -1,17 +1,34 @@
 package com.theseventhsense.clients.wsclient
 
-import akka.actor.ActorRef
-import akka.stream.scaladsl.Source
+import akka.NotUsed
+import akka.stream.scaladsl.{RestartSource, Source}
 import com.theseventhsense.utils.persistence.Keyed
 
 import scala.collection.immutable
+import scala.concurrent.duration._
 import scala.concurrent.{ExecutionContext, Future}
 
 trait BatchLoader[T <: Keyed] {
   def load(offset: Option[String]): Future[Batch[T]]
 
-  def source(implicit ec: ExecutionContext): Source[T, ActorRef] = {
-    Source.actorPublisher(BatchSource.props[T](this))
+  private def extract(b: Batch[T]): (Option[String], List[T]) =
+    (b.nextOffset, b.items.toList)
+
+  private def loadAndExtract(
+    offset: Option[String]
+  )(implicit ec: ExecutionContext): Future[Option[(Option[String], List[T])]] =
+    load(offset).map(b => Option(extract(b)))
+
+  def source(implicit ec: ExecutionContext): Source[T, NotUsed] = {
+    RestartSource.withBackoff(
+      minBackoff = 1.seconds,
+      maxBackoff = 30.seconds,
+      randomFactor = 0.2 // adds 20% "noise" to vary the intervals slightly
+    ) { () =>
+      Source
+        .unfoldAsync(Option.empty[String])(loadAndExtract)
+        .mapConcat(identity)
+    }
   }
 
   def iterator: Iterator[T] = new BatchIterator[T](this)
@@ -25,7 +42,7 @@ trait ParentBatchLoader[A <: KeyedTimestamp, B <: KeyedTimestamp]
 
   def childLoaders(a: A): immutable.Seq[BatchLoader[B]]
 
-  def childSource(implicit ec: ExecutionContext): Source[B, ActorRef] = {
+  def childSource(implicit ec: ExecutionContext): Source[B, NotUsed] = {
     source
       .filter(state.filter)
       .grouped(MaxGroupSize)
