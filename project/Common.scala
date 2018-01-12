@@ -1,6 +1,7 @@
 import sbt.Keys._
 import sbt._
 import bintray.BintrayKeys._
+import sbtcrossproject.{crossProject, CrossType}
 
 object Common {
   val scalaV211 = "2.11.12"
@@ -42,9 +43,6 @@ object Common {
       licenses += ("MIT", url("http://opensource.org/licenses/MIT")),
       organization := "com.theseventhsense",
       javacOptions ++= Seq("-Xlint:unchecked", "-Xlint:deprecation"),
-      ivyScala := ivyScala.value map {
-        _.copy(overrideScalaVersion = true)
-      },
       maxErrors := 1,
       scalacOptions := sharedScalacOptions,
 

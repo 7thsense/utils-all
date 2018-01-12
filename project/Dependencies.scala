@@ -586,14 +586,6 @@ object Dependencies {
   val Univocity =
     Def.setting(Seq("com.univocity" % "univocity-parsers" % Versions.Univocity))
 
-  val WithShapeless =
-    Def.setting(
-      (Circe.value ++ Shapeless).map(
-        m =>
-          m.copy(name = m.name + "_2.11", crossVersion = CrossVersion.Disabled)
-      )
-    )
-
   val XDotAiDiff =
     Def.setting(Seq("ai.x" %% "diff" % Versions.XDotAiDiff % "test"))
 }

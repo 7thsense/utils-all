@@ -1,3 +1,4 @@
+import sbtcrossproject.{crossProject, CrossType}
 resolvers in ThisBuild ++= Seq(
   Resolver.jcenterRepo,
   Resolver.bintrayRepo("7thsense", "maven")
@@ -42,7 +43,7 @@ lazy val `utils-testing` = project
   .settings(libraryDependencies ++= Dependencies.AkkaTestKit.value)
   .settings(libraryDependencies ++= Dependencies.Mockito.value)
 
-lazy val `utils-core` = crossProject
+lazy val `utils-core` = crossProject(JSPlatform, JVMPlatform)
   .crossType(CrossType.Pure)
   .in(file("core"))
   .dependsOn(`utils-datetime`)
@@ -57,7 +58,7 @@ lazy val `utils-core-jvm` = `utils-core`.jvm
 
 lazy val `utils-core-js` = `utils-core`.js
 
-lazy val `utils-datetime` = crossProject
+lazy val `utils-datetime` = crossProject(JSPlatform, JVMPlatform)
   .crossType(CrossType.Full)
   .in(file("datetime"))
   .settings(Common.settings)
@@ -73,7 +74,7 @@ lazy val `utils-datetime-jvm` = `utils-datetime`.jvm
 
 lazy val `utils-datetime-js` = `utils-datetime`.js
 
-lazy val `utils-datetime-circe` = crossProject
+lazy val `utils-datetime-circe` = crossProject(JSPlatform, JVMPlatform)
   .crossType(CrossType.Pure)
   .in(file("datetime/codecs-circe"))
   .dependsOn(`utils-datetime`)
@@ -97,7 +98,7 @@ lazy val `utils-datetime-playjson` = project
     libraryDependencies ++= Dependencies.PlayJson.value
   )
 
-lazy val `utils-cats` = crossProject
+lazy val `utils-cats` = crossProject(JSPlatform, JVMPlatform)
   .crossType(CrossType.Pure)
   .in(file("cats"))
   .settings(Common.settings)
@@ -111,7 +112,7 @@ lazy val `utils-cats-jvm` = `utils-cats`.jvm
 
 lazy val `util-cats-js` = `utils-cats`.js
 
-lazy val `utils-logging` = crossProject
+lazy val `utils-logging` = crossProject(JSPlatform, JVMPlatform)
   .crossType(CrossType.Full)
   .in(file("logging"))
   .settings(Common.settings)
@@ -126,7 +127,7 @@ lazy val `utils-logging-jvm` = `utils-logging`.jvm
 
 lazy val `utils-logging-js` = `utils-logging`.js
 
-lazy val `utils-persistence` = crossProject
+lazy val `utils-persistence` = crossProject(JSPlatform, JVMPlatform)
   .crossType(CrossType.Pure)
   .in(file("persistence"))
   .settings(Common.settings)
@@ -207,7 +208,7 @@ lazy val `utils-oauth2` = project
   .settings(libraryDependencies ++= Dependencies.PlayMockWs.value)
   .settings(libraryDependencies ++= Dependencies.PureConfig.value)
 
-lazy val `utils-collections` = crossProject
+lazy val `utils-collections` = crossProject(JSPlatform, JVMPlatform)
   .crossType(CrossType.Pure)
   .in(file("./collections/core"))
   .settings(Common.sharedSettings)
@@ -218,7 +219,7 @@ lazy val `utils-collectionsJVM` = `utils-collections`.jvm
 
 lazy val `utils-collectionsJS` = `utils-collections`.js
 
-lazy val `utils-collections-circe` = crossProject
+lazy val `utils-collections-circe` = crossProject(JSPlatform, JVMPlatform)
   .crossType(CrossType.Pure)
   .in(file("./collections/circe"))
   .dependsOn(`utils-collections`)
