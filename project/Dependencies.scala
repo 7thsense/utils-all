@@ -4,8 +4,8 @@ import sbt._
 object Dependencies {
 
   object Versions {
-    val Akka: String = "2.5.6"
-    val AkkaHTTP: String = "10.0.10"
+    val Akka: String = "2.5.9"
+    val AkkaHTTP: String = "10.0.11"
     val AkkaKryo: String = "0.5.3-0.ss.1"
     val AkkaAWSECS = "0.0.8"
     val AkkaJS: String = "0.2.4.10"
@@ -15,17 +15,17 @@ object Dependencies {
     val AkkaStreamExtensions = "0.10.0"
     val Alluxio = "1.0.1"
     val Avro4s = "1.3.2"
-    val AWS = "1.11.102"
+    val AWS = "1.11.257"
     //    val angularVersion = "1.4.4"
     val AsyncHttpClient = "2.0.19"
     val BetterFiles = "2.17.1"
     val BooPickle = "1.1.0"
     val Bootstrap4 = "4.0.0-alpha.3"
     val BouncyCastle = "1.46"
-    val Cats = "1.0.0-RC1"
+    val Cats = "1.0.1"
     val CatsScalatest = "2.2.0"
     val Chill = "0.9.2"
-    val Circe = "0.9.0-M2"
+    val Circe = "0.9.0"
     val CloudWatchMetrics = "0.4.0"
     val CommonsHttp = "4.5.2"
     val CommonsIo = "2.4"
@@ -53,11 +53,12 @@ object Dependencies {
     val Netty3 = "3.10.6.Final"
     val Netty40 = "4.0.42.Final"
     val Netty41 = "4.1.5.Final"
+    val Play = "2.6.11"
+    val PlayJson = "2.6.8"
+    val PlayMockWs = "2.6.0"
     val PlayCirce = "2608.3"
     val PlayRedis = "1.5.1"
     val PlayMetrics = "2.6.2_0.5.1.0.ss.0"
-    val PlayMockWs = "2.6.0"
-    val Play = "2.6.7"
     val PPrint = "0.5.2"
     val PureConfig = "0.8.0"
     val RosHTTP = "2.0.2"
@@ -411,7 +412,7 @@ object Dependencies {
     Def.setting(Seq("com.typesafe.play" %% "play-slick" % "3.0.1"))
 
   val PlayJson =
-    Def.setting(Seq("com.typesafe.play" %% "play-json" % Versions.Play))
+    Def.setting(Seq("com.typesafe.play" %% "play-json" % Versions.PlayJson))
 
   val PlayWs =
     Def.setting(Seq("com.typesafe.play" %% "play-ws" % Versions.Play))
