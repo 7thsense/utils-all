@@ -42,9 +42,6 @@ object Common {
       licenses += ("MIT", url("http://opensource.org/licenses/MIT")),
       organization := "com.theseventhsense",
       javacOptions ++= Seq("-Xlint:unchecked", "-Xlint:deprecation"),
-      ivyScala := ivyScala.value map {
-        _.copy(overrideScalaVersion = true)
-      },
       maxErrors := 1,
       scalacOptions := sharedScalacOptions,
 
