@@ -1,35 +1,52 @@
 package com.theseventhsense.clients.wsclient
 
 import akka.NotUsed
-import akka.stream.scaladsl.{RestartSource, Source}
+import akka.stream.scaladsl.Source
+import com.theseventhsense.utils.logging.Logging
 import com.theseventhsense.utils.persistence.Keyed
 
 import scala.collection.immutable
-import scala.concurrent.duration._
 import scala.concurrent.{ExecutionContext, Future}
 
-trait BatchLoader[T <: Keyed] {
+trait BatchLoader[T <: Keyed] extends Logging {
   def load(offset: Option[String]): Future[Batch[T]]
 
-  private def extract(b: Batch[T]): (Option[String], List[T]) =
-    (b.nextOffset, b.items.toList)
+  private case class UnfoldBatch(offset: Option[String] = None,
+                                 isComplete: Boolean = false,
+                                 items: List[T] = List.empty)
 
   private def loadAndExtract(
-    offset: Option[String]
-  )(implicit ec: ExecutionContext): Future[Option[(Option[String], List[T])]] =
-    load(offset).map(b => Option(extract(b)))
-
-  def source(implicit ec: ExecutionContext): Source[T, NotUsed] = {
-    RestartSource.withBackoff(
-      minBackoff = 1.seconds,
-      maxBackoff = 30.seconds,
-      randomFactor = 0.2 // adds 20% "noise" to vary the intervals slightly
-    ) { () =>
-      Source
-        .unfoldAsync(Option.empty[String])(loadAndExtract)
-        .mapConcat(identity)
+    lastBatch: UnfoldBatch
+  )(implicit ec: ExecutionContext): Future[Option[(UnfoldBatch, List[T])]] =
+    if (lastBatch.isComplete && lastBatch.items.isEmpty) {
+      logger.trace(s"Finished loading $lastBatch")
+      Future.successful(None)
+    } else if (lastBatch.isComplete && lastBatch.items.nonEmpty) {
+      logger.trace(s"Flushing queue $lastBatch")
+      Future.successful(
+        Some((lastBatch.copy(items = List.empty), lastBatch.items))
+      )
+    } else {
+      logger.trace(s"Loading data $lastBatch")
+      load(lastBatch.offset).map(
+        result =>
+          Some(
+            (
+              UnfoldBatch(
+                offset = result.nextOffset,
+                isComplete = !result.hasMore,
+                items = result.items.toList
+              ),
+              lastBatch.items
+            )
+        )
+      )
     }
-  }
+
+  def source(implicit ec: ExecutionContext): Source[T, NotUsed] =
+    Source
+      .unfoldAsync(UnfoldBatch())(loadAndExtract)
+      .mapConcat(identity)
 
   def iterator: Iterator[T] = new BatchIterator[T](this)
 }

@@ -1,5 +1,6 @@
 package com.theseventhsense.oauth2
 
+import cats.implicits._
 import com.theseventhsense.oauth2.OAuth2Codecs._
 import com.theseventhsense.oauth2.OAuth2Provider.DefaultOAuth2Provider
 import com.theseventhsense.testing.UnitSpec
@@ -95,7 +96,7 @@ class OAuth2ClientControllerSpec extends UnitSpec with ScalaFutures {
         .codeGrantAccessToken(provider, s"https://$Host$CallbackUrlPath", Code)
     ).thenReturn(Future.successful(tokenResponse))
     when(service.createOrUpdateCredentials(state, tokenResponse))
-      .thenReturn(Future.successful(Some(cred)))
+      .thenReturn(Future.successful(Either.right[String, OAuth2Credential](cred)))
 
     val mapper = mock[TOAuth2StateMapper](RETURNS_SMART_NULLS)
     when(
@@ -192,7 +193,7 @@ class OAuth2ClientControllerSpec extends UnitSpec with ScalaFutures {
         .codeGrantAccessToken(provider, s"https://$Host$CallbackUrlPath", Code)
     ).thenReturn(Future.successful(tokenResponse))
     when(service.createOrUpdateCredentials(state, tokenResponse))
-      .thenReturn(Future.successful(Some(cred)))
+      .thenReturn(Future.successful(Either.right(cred)))
 
     val mapper = mock[TOAuth2StateMapper](RETURNS_SMART_NULLS)
     when(
