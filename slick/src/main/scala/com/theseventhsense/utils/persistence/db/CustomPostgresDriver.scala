@@ -19,6 +19,7 @@ trait CustomPostgresDriver
 
   object MyAPI
       extends API
+      with DateTimeImplicits
       with SimpleJsonImplicits
       with SimpleArrayImplicits
       with SearchImplicits
