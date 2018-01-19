@@ -23,7 +23,7 @@ object Dependencies {
     val Bootstrap4 = "4.0.0-alpha.3"
     val BouncyCastle = "1.46"
     val Cats = "1.0.1"
-    val CatsScalatest = "2.2.0"
+    val CatsScalatest = "2.3.1"
     val Chill = "0.9.2"
     val Circe = "0.9.0"
     val CloudWatchMetrics = "0.4.0"
@@ -585,14 +585,6 @@ object Dependencies {
 
   val Univocity =
     Def.setting(Seq("com.univocity" % "univocity-parsers" % Versions.Univocity))
-
-  val WithShapeless =
-    Def.setting(
-      (Circe.value ++ Shapeless).map(
-        m =>
-          m.copy(name = m.name + "_2.11", crossVersion = CrossVersion.Disabled)
-      )
-    )
 
   val XDotAiDiff =
     Def.setting(Seq("ai.x" %% "diff" % Versions.XDotAiDiff % "test"))
