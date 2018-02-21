@@ -6,6 +6,7 @@ resolvers in ThisBuild ++= Seq(
 lazy val `utils-all` = project
   .in(file("."))
   .settings(Common.settings)
+  .aggregate(`utils-akka`)
   .aggregate(`utils-cats`.jvm)
   .aggregate(`utils-cats`.js)
   .aggregate(`utils-core`.jvm)
@@ -31,6 +32,12 @@ lazy val `utils-all` = project
   .aggregate(`utils-oauth2`)
   .aggregate(`utils-slick`)
   .aggregate(`utils-slick-testing`)
+
+lazy val `utils-akka` = project
+  .in(file("akka"))
+  .settings(Common.settings)
+  .settings(libraryDependencies ++= Dependencies.Akka.value)
+  .settings(libraryDependencies ++= Dependencies.AkkaTestKit.value)
 
 lazy val `utils-testing` = project
   .in(file("testing"))
