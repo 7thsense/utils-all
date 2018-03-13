@@ -3,12 +3,12 @@ package com.theseventhsense.udatetime
 import java.util.Date
 
 import cats.implicits._
+
 import com.theseventhsense.utils.types.SSDateTime
 import com.theseventhsense.utils.types.SSDateTime._
 import io.circe.generic.extras.semiauto._
 import io.circe.generic.extras.defaults._
-import io.circe.{Decoder, Encoder, KeyDecoder, KeyEncoder}
-
+import io.circe._
 import scala.util.Try
 
 /**
@@ -20,12 +20,12 @@ trait UDateTimeCodecs {
     Encoder[Long].contramap(_.getTime)
   }
   val stringDateDecoder: Decoder[Date] = {
-    Decoder[String].emap(s ⇒
-          SSDateTime.Instant.parse(s).map(_.asDate).leftMap(_.toString))
+    Decoder[String].emap(
+      s => SSDateTime.Instant.parse(s).map(_.asDate).leftMap(_.toString)
+    )
   }
-  val longDateDecoder: Decoder[Date] = {
-    Decoder[Long].map(millis ⇒ new Date(millis))
-  }
+  val longDateDecoder: Decoder[Date] = Decoder[Instant].map(_.asDate)
+
   implicit val dateDecoder: Decoder[Date] =
     longDateDecoder or stringDateDecoder
 
@@ -33,13 +33,24 @@ trait UDateTimeCodecs {
     Encoder[Long].contramap(_.millis)
   }
   val stringInstantDecoder: Decoder[SSDateTime.Instant] = {
-    Decoder[String].emap(s ⇒ SSDateTime.Instant.parse(s).leftMap(_.toString))
+    Decoder[String].emap(s => SSDateTime.Instant.parse(s).leftMap(_.toString))
   }
-  val longInstantDecoder: Decoder[SSDateTime.Instant] = {
-    Decoder[Long].map(millis ⇒ new SSDateTime.Instant(millis))
-  }
+  val longInstantDecoder: Decoder[SSDateTime.Instant] =
+    Decoder[JsonNumber].map { jsNumber =>
+      val longOpt = jsNumber.toLong
+      longOpt match {
+        case Some(millis) if millis < SSDateTime.Instant.Min.millis =>
+          SSDateTime.Instant.Min
+        case Some(millis) if millis > SSDateTime.Instant.Max.millis =>
+          SSDateTime.Instant.Max
+        case Some(millis)                   => new SSDateTime.Instant(millis)
+        case None if jsNumber.toDouble > 0  => SSDateTime.Instant.Max
+        case None if jsNumber.toDouble == 0 => SSDateTime.Instant(0L)
+        case None if jsNumber.toDouble < 0  => SSDateTime.Instant.Min
+      }
+    }
   implicit val instantDecoder: Decoder[SSDateTime.Instant] =
-    longInstantDecoder or stringInstantDecoder
+    longInstantDecoder //or stringInstantDecoder
 
   //  implicit lazy val dateTimeEncoder: Encoder[DateTime] = {
   //    Encoder[Long].contramap(_.getMillis)
@@ -55,28 +66,29 @@ trait UDateTimeCodecs {
   implicit val dateTimeDayOfWeekEncoder: Encoder[SSDateTime.DayOfWeek] =
     Encoder[Int].contramap(_.isoNumber)
   implicit val dateTimeDayOfWeekDecoder: Decoder[SSDateTime.DayOfWeek] =
-    Decoder[Int].map(isoNumber ⇒
-          SSDateTime.DayOfWeek.all.find(_.isoNumber == isoNumber).get)
+    Decoder[Int].map(
+      isoNumber => SSDateTime.DayOfWeek.all.find(_.isoNumber == isoNumber).get
+    )
   implicit val dateTimeDayOfMonthEncoder: Encoder[SSDateTime.DayOfMonth] =
     Encoder[Int].contramap(_.num)
   implicit val dateTimeDayOfMonthDecoder: Decoder[SSDateTime.DayOfMonth] =
-    Decoder[Int].map(num ⇒ SSDateTime.DayOfMonth.all.find(_.num == num).get)
+    Decoder[Int].map(num => SSDateTime.DayOfMonth.all.find(_.num == num).get)
   implicit val dateTimeMonthEncoder: Encoder[SSDateTime.Month] =
     Encoder[Int].contramap(_.num)
   implicit val dateTimeMonthDecoder: Decoder[SSDateTime.Month] =
-    Decoder[Int].map(num ⇒ SSDateTime.Month.all.find(_.num == num).get)
+    Decoder[Int].map(num => SSDateTime.Month.all.find(_.num == num).get)
   implicit val dateTimeYearEncoder: Encoder[SSDateTime.Year] =
     Encoder[Int].contramap(_.year)
   implicit val dateTimeYearDecoder: Decoder[SSDateTime.Year] =
-    Decoder[Int].map(year ⇒ SSDateTime.Year(year))
+    Decoder[Int].map(year => SSDateTime.Year(year))
   implicit val dateTimeHourOfDayEncoder: Encoder[SSDateTime.HourOfDay] =
     Encoder[Int].contramap(_.num)
   implicit val dateTimeHourOfDayDecoder: Decoder[SSDateTime.HourOfDay] =
-    Decoder[Int].map(num ⇒ SSDateTime.HourOfDay.all.find(_.num == num).get)
+    Decoder[Int].map(num => SSDateTime.HourOfDay.all.find(_.num == num).get)
   implicit val dateTimeWeekOfMonthEncoder: Encoder[SSDateTime.WeekOfMonth] =
     Encoder[Int].contramap(_.num)
   implicit val dateTimeWeekOfMonthDecoder: Decoder[SSDateTime.WeekOfMonth] =
-    Decoder[Int].map(num ⇒ SSDateTime.WeekOfMonth.all.find(_.num == num).get)
+    Decoder[Int].map(num => SSDateTime.WeekOfMonth.all.find(_.num == num).get)
   implicit val displayTimeZoneEncoder: Encoder[SSDateTime.DisplayTimeZone] =
     deriveEncoder
   implicit val displayTimeZoneDecoder: Decoder[SSDateTime.DisplayTimeZone] =

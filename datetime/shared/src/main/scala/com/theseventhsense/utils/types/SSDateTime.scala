@@ -124,8 +124,8 @@ object SSDateTime {
 
     def now: Instant = apply(System.currentTimeMillis())
 
-    val Max = apply(Long.MaxValue)
-    val Min = apply(Long.MinValue)
+    val Max = apply(8640000000000000L)
+    val Min = apply(-8640000000000000L)
   }
 
   case class DateTime(instant: Instant, zone: TimeZone = TimeZone.UTC)
