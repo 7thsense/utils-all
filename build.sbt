@@ -53,9 +53,7 @@ lazy val `utils-core` = crossProject
   .crossType(CrossType.Pure)
   .in(file("core"))
   .dependsOn(`utils-datetime`)
-  .settings(
-    libraryDependencies ++= Dependencies.ScalaTest.value
-  )
+  .settings(libraryDependencies ++= Dependencies.ScalaTest.value)
   //.settings(libraryDependencies += Dependencies.SSDateTime.value)
   .settings(Common.settings)
   .jsSettings(Common.jsSettings: _*)
@@ -67,13 +65,14 @@ lazy val `utils-core-js` = `utils-core`.js
 lazy val `utils-datetime` = crossProject
   .crossType(CrossType.Full)
   .in(file("datetime"))
+  .enablePlugins(ScalaJSBundlerPlugin)
   .settings(Common.settings)
   .jsSettings(Common.jsSettings: _*)
-  //  .enablePlugins(ScalaJSBundlerPlugin)
   .settings(
-  name := "utils-datetime",
-  libraryDependencies ++= Dependencies.Cats.value ++ Dependencies.ScalaJavaTime.value
-)
+    name := "utils-datetime",
+    libraryDependencies ++= Dependencies.Cats.value ++ Dependencies.ScalaJavaTime.value
+  )
+  .settings(libraryDependencies ++= Dependencies.ScalaTest.value)
   .jsSettings(libraryDependencies ++= Dependencies.ScalaJsMoment.value)
 
 lazy val `utils-datetime-jvm` = `utils-datetime`.jvm
@@ -83,12 +82,15 @@ lazy val `utils-datetime-js` = `utils-datetime`.js
 lazy val `utils-datetime-circe` = crossProject
   .crossType(CrossType.Pure)
   .in(file("datetime/codecs-circe"))
+  .enablePlugins(ScalaJSBundlerPlugin)
   .dependsOn(`utils-datetime`)
   .settings(Common.settings)
   .jsSettings(Common.jsSettings: _*)
   .settings(
     name := "utils-datetime-circe",
-    libraryDependencies ++= Dependencies.Circe.value
+    libraryDependencies ++= Dependencies.Circe.value,
+    libraryDependencies ++= Dependencies.ScalaTest.value,
+    jsEnv in Test := new org.scalajs.jsenv.nodejs.NodeJSEnv()
   )
 
 lazy val `utils-datetime-circe-jvm` = `utils-datetime-circe`.jvm
@@ -169,7 +171,12 @@ lazy val `utils-play-testing` =
 lazy val `utils-slick` = project
   .in(file("slick"))
   .settings(Common.settings)
-  .dependsOn(`utils-logging`.jvm, `utils-core`.jvm, `utils-datetime`.jvm, `utils-persistence`.jvm)
+  .dependsOn(
+    `utils-logging`.jvm,
+    `utils-core`.jvm,
+    `utils-datetime`.jvm,
+    `utils-persistence`.jvm
+  )
   .settings(parallelExecution in Test := false, fork in Test := true)
   .settings(libraryDependencies ++= Dependencies.Akka.value)
   .settings(libraryDependencies ++= Dependencies.SlickPg.value)

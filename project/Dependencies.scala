@@ -6,7 +6,6 @@ object Dependencies {
   object Versions {
     val Akka: String = "2.5.9"
     val AkkaHTTP: String = "10.0.11"
-    val AkkaKryo: String = "0.5.3-0.ss.1"
     val AkkaAWSECS = "0.0.8"
     val AkkaJS: String = "0.2.4.10"
     val AkkaPersistenceRedis = "0.8.0"
@@ -14,7 +13,7 @@ object Dependencies {
     val AkkaSSE: String = "1.8.0"
     val AkkaStreamExtensions = "0.10.0"
     val Alluxio = "1.0.1"
-    val Avro4s = "1.3.2"
+    val Avro4s = "1.8.0"
     val AWS = "1.11.257"
     //    val angularVersion = "1.4.4"
     val AsyncHttpClient = "2.0.19"
@@ -25,24 +24,20 @@ object Dependencies {
     val Cats = "1.0.1"
     val CatsScalatest = "2.3.1"
     val Chill = "0.9.2"
-    val Circe = "0.9.0"
+    val Circe = "0.9.1"
     val CloudWatchMetrics = "0.4.0"
     val CommonsHttp = "4.5.2"
     val CommonsIo = "2.4"
     val Diode = "0.5.2"
-    val Elastic4s = "5.4.7"
-    val ElasticSearch = "2.3.4"
-    val ElasticSearchSpark20 = "5.5.0"
+    val Elastic4s = "6.2.3"
+    val ElasticSearchSpark20 = "6.2.1"
     val Enums = "3.1"
-    val EWSJavaApi = "2.1.0.ss.0"
     val Flink = "1.1.4"
     val FlyWay = "3.0.0"
     //    val jacksonVersion: String = "2.4.4"
     //    val kamonVersion: String = "0.4.0"
     val Guice = "4.1.0"
-    val Hasher = "1.2.0"
     val Hadoop = "2.7.3"
-    val JavaxMail = "1.4.7"
     val JBCrypt = "0.3m"
     val JodaConvert = "1.8"
     val JodaTime = "2.9.2"
@@ -54,9 +49,9 @@ object Dependencies {
     val Netty40 = "4.0.42.Final"
     val Netty41 = "4.1.5.Final"
     val Play = "2.6.11"
-    val PlayJson = "2.6.8"
+    val PlayJson = "2.6.9"
     val PlayMockWs = "2.6.0"
-    val PlayCirce = "2608.3"
+    val PlayCirce = "2609.1"
     val PlayRedis = "1.5.1"
     val PlayMetrics = "2.6.2_0.5.1.0.ss.0"
     val PPrint = "0.5.2"
@@ -65,7 +60,6 @@ object Dependencies {
     val Parquet = "2.1.0"
     val PostgresDriver = "42.1.4"
     val React = "15.5.4"
-    val Recurly = "0.9.0"
     val RedisScala = "1.8.0"
     val ScalaCsv = "1.3.3"
     val ScalaGLM = "0.3"
@@ -84,7 +78,7 @@ object Dependencies {
     val ScalaCss = "0.5.3"
     val Scalactic = "3.0.0"
     val ScalaJsReactBridge = "0.4.0-SNAPSHOT"
-    val ScalaTest = "3.0.0"
+    val ScalaTest = "3.0.4"
     val ScalaTestPlusPlay = "3.1.1"
     val SCodec = "1.9.0"
     val Scopt = "3.5.0"
@@ -95,7 +89,7 @@ object Dependencies {
     val SlickPg = "0.15.2"
     val Slogging = "0.5.3"
     val SodaTime = "0.0.1.ss.0"
-    val Spark = "2.2.0"
+    val Spark = "2.3.0"
     val SparkLink = "1.0.4"
     val SparkkaStreams = "1.5"
     val SpringSecurity = "4.2.3.RELEASE"
@@ -279,10 +273,6 @@ object Dependencies {
     )
   )
 
-  val Hasher = Def.setting(Seq("com.roundeights" %% "hasher" % Versions.Hasher))
-
-  val JavaxMail = Def.setting(Seq("javax.mail" % "mail" % Versions.JavaxMail))
-
   val JBCrypt = Def.setting(Seq("org.mindrot" % "jbcrypt" % Versions.JBCrypt))
 
   val JodaTime = Def.setting(
@@ -307,7 +297,7 @@ object Dependencies {
   )
 
   val PlayCirce =
-    Def.setting(Seq("play-circe" %% "play-circe" % Versions.PlayCirce))
+    Def.setting(Seq("com.dripower" %% "play-circe" % Versions.PlayCirce))
 
   val PlayMetrics =
     Def.setting(Seq("com.kenshoo" %% "metrics-play" % Versions.PlayMetrics))
@@ -419,16 +409,6 @@ object Dependencies {
 
   val PostgresDriver =
     Def.setting(Seq("org.postgresql" % "postgresql" % Versions.PostgresDriver))
-
-  val Recurly = Def.setting(
-    Seq(
-      // Force latest async-http-client, when mixing in
-      // with AAAroot, we end up getting v1.9.11 which does not properly validate the recurly
-      // site certificates.
-      "com.ning" % "async-http-client" % "1.9.40",
-      "com.ning.billing" % "recurly-java-library" % Versions.Recurly
-    )
-  )
 
   val RedisScala =
     Def.setting(Seq("com.github.etaty" %% "rediscala" % Versions.RedisScala))
