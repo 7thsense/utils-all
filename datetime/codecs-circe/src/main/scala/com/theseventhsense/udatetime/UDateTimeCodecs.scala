@@ -25,8 +25,7 @@ trait UDateTimeCodecs {
   }
   val longInstantDecoder: Decoder[SSDateTime.Instant] =
     Decoder[JsonNumber].map { jsNumber =>
-      val longOpt = jsNumber.toLong
-      longOpt match {
+      jsNumber.toLong match {
         case Some(millis) if millis < SSDateTime.Instant.Min.millis =>
           SSDateTime.Instant.Min
         case Some(millis) if millis > SSDateTime.Instant.Max.millis =>
@@ -38,21 +37,14 @@ trait UDateTimeCodecs {
       }
     }
   implicit val instantDecoder: Decoder[SSDateTime.Instant] =
-    longInstantDecoder //or stringInstantDecoder
+    longInstantDecoder or stringInstantDecoder
 
   // java.util.Date and java.time codecs
-  implicit val dateEncoder: Encoder[Date] = {
+  implicit val dateEncoder: Encoder[Date] =
     Encoder[Long].contramap(_.getTime)
-  }
-  val stringDateDecoder: Decoder[Date] = {
-    Decoder[String].emap(
-      s => SSDateTime.Instant.parse(s).map(_.asDate).leftMap(_.toString)
-    )
-  }
-  val longDateDecoder: Decoder[Date] = Decoder[Instant].map(_.asDate)
 
   implicit val dateDecoder: Decoder[Date] =
-    longDateDecoder or stringDateDecoder
+    Decoder[Instant].map(_.asDate)
 
   //  implicit lazy val dateTimeEncoder: Encoder[DateTime] = {
   //    Encoder[Long].contramap(_.getMillis)
