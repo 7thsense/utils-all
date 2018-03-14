@@ -19,7 +19,6 @@ lazy val `utils-all` = project
   .aggregate(`utils-collections-circe`.js)
   .aggregate(`utils-collections-mapdb`)
   .aggregate(`utils-collections-akka`)
-  .aggregate(`utils-collections-spark`)
   .aggregate(`utils-datetime`.jvm)
   .aggregate(`utils-datetime`.js)
   .aggregate(`utils-datetime-circe`.jvm)
@@ -35,7 +34,7 @@ lazy val `utils-all` = project
   .aggregate(`utils-oauth2`)
   .aggregate(`utils-slick`)
   .aggregate(`utils-slick-testing`)
-  .aggregate(`utils-spark`)
+
 
 lazy val `utils-akka` = project
   .in(file("akka"))
@@ -162,6 +161,7 @@ lazy val `utils-spark` =
     .dependsOn(`utils-datetime-circe`.jvm)
     .settings(libraryDependencies ++= Dependencies.Akka.value)
     .settings(libraryDependencies ++= Dependencies.Spark.value)
+    .aggregate(`utils-collections-spark`)
 
 lazy val `utils-play-testing` =
   project

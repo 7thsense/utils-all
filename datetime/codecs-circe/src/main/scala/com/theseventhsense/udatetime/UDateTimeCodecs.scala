@@ -15,19 +15,7 @@ import scala.util.Try
   * Created by erik on 6/17/16.
   */
 trait UDateTimeCodecs {
-  // java.util.Date and java.time codecs
-  implicit val dateEncoder: Encoder[Date] = {
-    Encoder[Long].contramap(_.getTime)
-  }
-  val stringDateDecoder: Decoder[Date] = {
-    Decoder[String].emap(
-      s => SSDateTime.Instant.parse(s).map(_.asDate).leftMap(_.toString)
-    )
-  }
-  val longDateDecoder: Decoder[Date] = Decoder[Instant].map(_.asDate)
 
-  implicit val dateDecoder: Decoder[Date] =
-    longDateDecoder or stringDateDecoder
 
   implicit val instantEncoder: Encoder[SSDateTime.Instant] = {
     Encoder[Long].contramap(_.millis)
@@ -51,6 +39,20 @@ trait UDateTimeCodecs {
     }
   implicit val instantDecoder: Decoder[SSDateTime.Instant] =
     longInstantDecoder //or stringInstantDecoder
+
+  // java.util.Date and java.time codecs
+  implicit val dateEncoder: Encoder[Date] = {
+    Encoder[Long].contramap(_.getTime)
+  }
+  val stringDateDecoder: Decoder[Date] = {
+    Decoder[String].emap(
+      s => SSDateTime.Instant.parse(s).map(_.asDate).leftMap(_.toString)
+    )
+  }
+  val longDateDecoder: Decoder[Date] = Decoder[Instant].map(_.asDate)
+
+  implicit val dateDecoder: Decoder[Date] =
+    longDateDecoder or stringDateDecoder
 
   //  implicit lazy val dateTimeEncoder: Encoder[DateTime] = {
   //    Encoder[Long].contramap(_.getMillis)
