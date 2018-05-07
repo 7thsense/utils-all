@@ -228,7 +228,7 @@ trait SlickDAO[P <: JdbcProfile, Id <: BaseId, T <: Identified[Id, T]]
   ): dbio.DBIOAction[Long, NoStream, Effect with Effect] = {
     for {
       current <- currSequenceValueCommand
-      reset <- if (next > current) {
+      reset <- if (next >= current) {
         resetSequenceCommand(next)
       } else {
         sql"SELECT $current;".as[Long].head
