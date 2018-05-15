@@ -1,11 +1,12 @@
 package com.theseventhsense.utils.types
 
+import java.time.{ZoneId, ZonedDateTime}
+
 import cats.implicits._
 import java.util
 import java.util.Date
 
 import com.theseventhsense.datetime._
-
 import scala.concurrent.duration.Duration
 import scala.language.implicitConversions
 import scala.util.Try
@@ -25,6 +26,8 @@ object SSDateTime {
 
   case class Instant(millis: Long) extends Comparable[Instant] {
     def asDate: Date = new Date(millis)
+
+    def asJava: java.time.Instant = java.time.Instant.ofEpochMilli(millis)
 
     def isEqual(other: Instant): Boolean = millis == other.millis
 
@@ -132,6 +135,8 @@ object SSDateTime {
       extends Comparable[DateTime] {
     override def compareTo(o: DateTime): Int = instant.compareTo(o.instant)
 
+    def asJava: java.time.ZonedDateTime = ZonedDateTime.ofInstant(instant.asJava, zone.asJava)
+
     def isEqual(dateTime: DateTime): Boolean = this == dateTime
 
     def isAfter(dateTime: DateTime): Boolean =
@@ -193,10 +198,11 @@ object SSDateTime {
   trait TimeZone extends Serializable {
     def name: String
 
-    def asUtilTimeZone: util.TimeZone = {
+    def asUtilTimeZone: util.TimeZone =
       Option(util.TimeZone.getTimeZone(name))
         .getOrElse(util.TimeZone.getDefault)
-    }
+
+    def asJava: java.time.ZoneId = ZoneId.of(name)
 
     override def toString: String = name
 

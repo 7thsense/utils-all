@@ -4,8 +4,8 @@ import sbt._
 object Dependencies {
 
   object Versions {
-    val Akka: String = "2.5.9"
-    val AkkaHTTP: String = "10.0.11"
+    val Akka: String = "2.5.12"
+    val AkkaHTTP: String = "10.1.1"
     val AkkaAWSECS = "0.0.8"
     val AkkaJS: String = "0.2.4.10"
     val AkkaPersistenceRedis = "0.8.0"
@@ -14,14 +14,14 @@ object Dependencies {
     val AkkaStreamExtensions = "0.10.0"
     val Alluxio = "1.0.1"
     val Avro4s = "1.8.0"
-    val AWS = "1.11.257"
+    val AWS = "1.11.329"
     //    val angularVersion = "1.4.4"
     val AsyncHttpClient = "2.0.19"
     val BetterFiles = "2.17.1"
     val BooPickle = "1.1.0"
     val Bootstrap4 = "4.0.0-alpha.3"
     val BouncyCastle = "1.46"
-    val Cats = "1.0.1"
+    val Cats = "1.1.0"
     val CatsScalatest = "2.3.1"
     val Chill = "0.9.2"
     val Circe = "0.9.1"
@@ -125,7 +125,7 @@ object Dependencies {
     )
   )
 
-  val AkkaClusterManagementHttp = "com.lightbend.akka" %% "akka-management-cluster-http" % "0.4"
+  val AkkaClusterManagementHttp = "com.lightbend.akka" %% "akka-management-cluster-http" % "0.13.0"
 
   val AlpakkaS3 = "com.lightbend.akka" %% "akka-stream-alpakka-s3" % "0.13"
 
@@ -438,7 +438,7 @@ object Dependencies {
 //    Def.setting(Seq("io.github.cquiroz" %%% "scala-java-locales" % "2.0.0-M12"))
 
   val ScalaJavaTime =
-    Def.setting(Seq("io.github.cquiroz" %%% "scala-java-time" % "2.0.0-M12"))
+    Def.setting(Seq("io.github.cquiroz" %%% "scala-java-time" % "2.0.0-M13"))
 
   val ScalaJsJquery = Def.setting(
     Seq(
@@ -561,7 +561,7 @@ object Dependencies {
     )
   )
 
-  val ScalaURI = Def.setting(Seq("io.lemonlabs" %%% "scala-uri" % "0.5.0"))
+  val ScalaURI = Def.setting(Seq("io.lemonlabs" %%% "scala-uri" % "1.1.1"))
 
   val Univocity =
     Def.setting(Seq("com.univocity" % "univocity-parsers" % Versions.Univocity))

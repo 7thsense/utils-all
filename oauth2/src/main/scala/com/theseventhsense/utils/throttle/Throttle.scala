@@ -52,15 +52,11 @@ object Rate {
 
   implicit val encoder: Encoder[Rate] = new Encoder[Rate] {
     override def apply(r: Rate): Json =
-      JsonObject
-        .from(
-          List(
-            "count" -> r.count.asJson,
-            "durationLength" -> r.duration.length.asJson,
-            "durationUnit" -> r.duration.unit.toString.asJson
-          )
-        )
-        .asJson
+      Json.obj(
+        "count" -> r.count.asJson,
+        "durationLength" -> r.duration.length.asJson,
+        "durationUnit" -> r.duration.unit.toString.asJson
+      )
   }
 
 }

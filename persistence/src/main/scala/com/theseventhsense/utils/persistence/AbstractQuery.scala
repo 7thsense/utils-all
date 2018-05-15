@@ -1,6 +1,6 @@
 package com.theseventhsense.utils.persistence
 
-import com.netaporter.uri.QueryString
+import io.lemonlabs.uri.QueryString
 
 /**
   * Created by erik on 2/4/16.
@@ -26,19 +26,20 @@ trait AbstractQueryMeta {
     }
   }
 
+  def params: Seq[(String, Some[String])] =
+    Seq(
+      "rangeStart" -> Some(rangeStart.toString),
+      "sortAsc" -> Some(sortAsc.toString)
+    ) ++
+      rangeEnd.map(x => "rangeEnd" -> Some(x.toString)).toSeq ++
+      sort.map(x => "sort" -> Some(x.toString)).toSeq ++
+      filename.map(x => "filename" -> Some(x.toString)).toSeq ++
+      filter.map(x => "filter" -> Some(x.toString)).toSeq ++
+      q.map(x => "q" -> Some(x.toString)).toSeq ++
+      format.map(x => "format" -> Some(x.toString)).toSeq
+
   def queryString: QueryString =
-    QueryString(
-      Seq(
-        "rangeStart" -> Some(rangeStart.toString),
-        "sortAsc" -> Some(sortAsc.toString)
-      ) ++
-        rangeEnd.map(x => "rangeEnd" -> Some(x.toString)).toSeq ++
-        sort.map(x => "sort" -> Some(x.toString)).toSeq ++
-        filename.map(x => "filename" -> Some(x.toString)).toSeq ++
-        filter.map(x => "filter" -> Some(x.toString)).toSeq ++
-        q.map(x => "q" -> Some(x.toString)).toSeq ++
-        format.map(x => "format" -> Some(x.toString)).toSeq
-    )
+    QueryString.fromPairOptions(params: _*)
 }
 
 trait AbstractQuery {
