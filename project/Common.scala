@@ -42,8 +42,7 @@ object Common {
       licenses += ("MIT", url("http://opensource.org/licenses/MIT")),
       organization := "com.theseventhsense",
       javacOptions ++= Seq("-Xlint:unchecked", "-Xlint:deprecation"),
-      maxErrors := 1,
-      scalacOptions := sharedScalacOptions,
+      maxErrors := 5,
 
       // Turn off building docs as a part of the standard distribution
       sources in (Compile, doc) := Seq.empty,
@@ -51,16 +50,19 @@ object Common {
     )
 
   val settings: Seq[Setting[_]] = sharedSettings ++ List(
+    scalacOptions := sharedScalacOptions ++ Seq("-target:jvm-1.8"),
     crossScalaVersions := scalaVersions,
     scalaVersion := scalaV
   )
 
   val sparkSettings: Seq[Setting[_]] = sharedSettings ++ List(
+    scalacOptions := sharedScalacOptions ++ Seq("-target:jvm-1.8"),
     crossScalaVersions := Seq(scalaV211),
     scalaVersion := scalaV211
   )
 
   val jsSettings: Seq[Setting[_]] = sharedSettings ++ List(
+    scalacOptions := sharedScalacOptions ++ Seq("-target:jvm-1.8"),
     crossScalaVersions := scalaVersions,
     fork := false,
     scalaVersion := scalaV212
