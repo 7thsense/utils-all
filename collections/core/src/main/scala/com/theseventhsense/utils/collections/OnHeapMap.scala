@@ -32,11 +32,11 @@ class OnHeapMap[K, V](sorted: Boolean = false) extends OffHeapMap[K, V] {
       .getOrElse(false)
 
   override def set(key: K, value: V): Unit =
-    Try {
+    try {
       underlying.put(key, value)
       ()
-    }.recover {
-      case _ =>
+    } catch {
+      case _: Throwable =>
         //logger.warn(s"Error setting $key -> $value", t)
         ()
     }

@@ -124,15 +124,13 @@ class MapDBOffHeapMap[K, V](
       .getOrElse(false)
 
   override def set(key: K, value: V): Unit =
-    Try {
+    try {
       if (!db.handle.isClosed) {
         underlying.put(key, value)
-      }
-      ()
-    }.recover {
-      case _ =>
-        //logger.warn(s"Error setting $key -> $value", t)
         ()
+      }
+    } catch {
+      case _: Throwable =>
     }
 
   override def get(key: K): Option[V] =
@@ -150,11 +148,11 @@ class MapDBOffHeapMap[K, V](
     }
 
   override def close(): Unit =
-    Try {
+    try {
       MapDBHelper.release(db)
       ()
-    }.recover {
-      case _ =>
+    } catch {
+      case _: Throwable =>
         //logger.warn("Failed closing db", t)
         ()
     }
