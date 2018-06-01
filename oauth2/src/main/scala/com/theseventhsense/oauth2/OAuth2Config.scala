@@ -46,8 +46,8 @@ object ProviderConfig {
     override def provider: OAuth2Provider =
       OAuth2Provider.LinkedIn.provider(clientId, clientSecret)
   }
-  case class Marketo() extends ProviderConfig {
-    override def provider: OAuth2Provider = OAuth2Provider.Marketo.baseProvider
+  case class Marketo(partnerApiKey: Option[String]) extends ProviderConfig {
+    override def provider: OAuth2Provider = OAuth2Provider.Marketo.baseProvider(partnerApiKey)
   }
   case class Salesforce(clientId: String, clientSecret: String)
       extends ProviderConfig {

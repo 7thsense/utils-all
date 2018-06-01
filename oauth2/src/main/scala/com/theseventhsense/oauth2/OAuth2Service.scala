@@ -408,7 +408,7 @@ object OAuth2Service extends Logging {
       "grant_type" -> GrantType.ClientCredentials.toString,
       "client_id" -> provider.clientId.get,
       "client_secret" -> provider.clientSecret.get
-    )
+    ) ++ provider.additionalTokenRequestParams
     val request = client
       .url(provider.tokenUrl.get)
       .addQueryStringParameters(queryParameters.toSeq: _*)
@@ -467,11 +467,7 @@ object OAuth2Service extends Logging {
     oAuth2Persistence: TOAuth2Persistence
   ): Future[OAuth2Credential] = {
     logger.debug(s"Refreshing access token request via client credentials")
-    val providerWithOverrides = oAuth2Credential.credentialsOverride match {
-      case None    => provider
-      case Some(o) => provider.withOverride(o)
-    }
-    clientCredentialsAccessToken(providerWithOverrides)
+    clientCredentialsAccessToken(provider)
       .flatMap(updateAccessToken(oAuth2Credential))
   }
 

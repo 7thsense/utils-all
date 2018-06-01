@@ -109,24 +109,50 @@ class RestClient(
 )(implicit val ec: ExecutionContext)
     extends Logging {
 
-  def executeWithRetry(request: WSRequest): Future[WSResponse] = {
+  def executeWithAuth(request: WSRequest): Future[WSResponse] =
+    oAuth2Client.executeWithAuth(request)
+
+  def executeWithAuthThrottled(request: WSRequest): Future[WSResponse] =
+    throttle.executeThrottled(oAuth2Client.executeWithAuth(request))
+
+  @deprecated("Use executeWithAuthThrottledRetry", "May 30, 2018")
+  def executeWithRetry(request: WSRequest): Future[WSResponse] =
+    executeWithAuthThrottledRetry(request)
+
+  def executeWithAuthThrottledRetry(request: WSRequest): Future[WSResponse] = {
     val retriedResponse = retryStrategy.retry({
-      val requestWithAuth = oAuth2Client.executeWithAuth(request)
-      throttle.executeThrottled(requestWithAuth)
+      executeWithAuthThrottled(request)
     })
     retriedResponse
   }.recoverWith { case t => onFailure(t) }
 
-  def postMultipartWithRetry(
+  def postMultipartWithAuth(
+    request: WSRequest,
+    body: Source[MultipartFormData.Part[Source[ByteString, _]], _]
+  ): Future[WSResponse] =
+    oAuth2Client.postMultipartWithAuth(request, body)
+
+  def postMultipartWithAuthThrottled(
+    request: WSRequest,
+    body: Source[MultipartFormData.Part[Source[ByteString, _]], _]
+  ): Future[WSResponse] =
+    throttle.executeThrottled(oAuth2Client.postMultipartWithAuth(request, body))
+
+  def postMultipartWithAuthThrottledRetry(
     request: WSRequest,
     body: Source[MultipartFormData.Part[Source[ByteString, _]], _]
   ): Future[WSResponse] = {
     val retriedResponse = retryStrategy.retry({
-      val requestWithAuth = oAuth2Client.postMultipartWithAuth(request, body)
-      throttle.executeThrottled(requestWithAuth)
+      postMultipartWithAuthThrottled(request, body)
     })
     retriedResponse
   }.recoverWith { case t => onFailure(t) }
+
+  @deprecated("Use postMultipartWithAuthThrottledRetry", "May 30, 2018")
+  def postMultipartWithRetry(
+    request: WSRequest,
+    body: Source[MultipartFormData.Part[Source[ByteString, _]], _]
+  ): Future[WSResponse] = postMultipartWithAuthThrottledRetry(request, body)
 
   def queryString(parameters: Map[String, Seq[String]]): String = {
     parameters
@@ -158,14 +184,19 @@ class RestClient(
     restResponseDecoder.parseResponse(request, response)
   }
 
-  def executeJson[T](
+  @deprecated("Use executeJsonWithAuthThrottledRetry", "May 30, 2018")
+  def executeJson[T](request: WSRequest)(
+    implicit restResponseDecoder: RestResponseDecoder[T]
+  ): Future[T] = executeJsonWithAuthThrottledRetry(request)
+
+  def executeJsonWithAuthThrottledRetry[T](
     request: WSRequest
   )(implicit restResponseDecoder: RestResponseDecoder[T]): Future[T] = {
     val url = s"${request.url}?${queryString(request.queryString)}"
     logger.trace(
       s"loading from ${request.url}?${queryString(request.queryString)}"
     )
-    executeWithRetry(request).flatMap { response: WSResponse =>
+    executeWithAuthThrottledRetry(request).flatMap { response: WSResponse =>
       response.status match {
         case 200 =>
           logger.trace(s"loaded $url: ${response.body.take(2048)}")

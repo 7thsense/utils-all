@@ -79,6 +79,8 @@ sealed abstract class OAuth2Provider extends Product with Serializable {
 
   def accessTokenInfoUrl: Option[String => String] = None
 
+  def additionalTokenRequestParams: Seq[(String, String)] = Seq.empty
+
   def requireAuthUrl(): Unit = require(
     authUrl.isDefined,
     s"Provider configuration error for $name: no auth url defined"
@@ -406,7 +408,11 @@ object OAuth2Provider {
   }
 
   object Marketo extends Logging {
-    def baseProvider: OAuth2Provider = Provider()
+    def baseProvider(partnerApiKey: Option[String]): OAuth2Provider =
+      Provider(
+        additionalTokenRequestParams =
+          partnerApiKey.toSeq.map(key => "partner_id" -> key)
+      )
 
     private case class ErrorMessage(code: String, message: String)
     private case class ErrorResponse(requestId: String,
@@ -426,11 +432,14 @@ object OAuth2Provider {
     def tokenUrlFromIdentityEndpoint(identityEndpointUri: String): String =
       s"$identityEndpointUri/oauth/token"
 
-    case class Provider(clientId: Option[String] = None,
-                        clientSecret: Option[String] = None,
-                        authUrl: Option[String] = None,
-                        tokenUrl: Option[String] = None)
-        extends OAuth2Provider {
+    case class Provider(
+      override val clientId: Option[String] = None,
+      override val clientSecret: Option[String] = None,
+      override val authUrl: Option[String] = None,
+      override val tokenUrl: Option[String] = None,
+      override val additionalTokenRequestParams: Seq[(String, String)] =
+        Seq.empty
+    ) extends OAuth2Provider {
       def name: String = "marketo"
       def authParams: Seq[AuthParam] = AuthParam.ClientCredentialsParams
       def redirectUri: Option[String] = None
