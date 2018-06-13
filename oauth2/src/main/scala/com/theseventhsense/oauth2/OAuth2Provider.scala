@@ -421,12 +421,31 @@ object OAuth2Provider {
     private implicit val errorMessageDecoder = deriveDecoder[ErrorMessage]
     private implicit val errorResponseDecoder = deriveDecoder[ErrorResponse]
 
+    private val RefreshableErrorCodes = Set(
+      "601", // Access token invalid
+      "602" // Access token expired
+    )
+
+    private val RetriableErrorCodes = Set(
+      "601", // Access token invalid
+      "602", // Access token expired
+      "604", // Request timeed out
+      "606", // Max rate limit exceeded
+      "608", // API temporarily unavailable
+      "615" // Concurrent access limit reached
+    )
+
     def shouldRefreshViaJsonBody(body: String): Boolean =
       parser.decode[ErrorResponse](body) match {
-        case Left(error) =>
+        case Left(_) =>
           false
-        case Right(marketoError) =>
-          marketoError.errors.nonEmpty && marketoError.errors.head.code == "601"
+        case Right(ErrorResponse(_, _, errors)) =>
+          errors.headOption match {
+            case Some(ErrorMessage(code, _)) if RefreshableErrorCodes.contains(code) =>
+              true
+            case _ =>
+              false
+          }
       }
 
     def tokenUrlFromIdentityEndpoint(identityEndpointUri: String): String =
