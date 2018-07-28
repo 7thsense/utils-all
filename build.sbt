@@ -1,4 +1,4 @@
-import sbtcrossproject.{crossProject, CrossType}
+import sbtcrossproject.CrossPlugin.autoImport.{crossProject, CrossType}
 
 resolvers in ThisBuild ++= Seq(
   Resolver.jcenterRepo,
@@ -57,6 +57,7 @@ lazy val `utils-core` = crossProject(JSPlatform, JVMPlatform)
   .in(file("core"))
   .dependsOn(`utils-datetime`)
   .settings(libraryDependencies ++= Dependencies.ScalaTest.value)
+  .settings(libraryDependencies ++= Dependencies.Octopus.value)
   //.settings(libraryDependencies += Dependencies.SSDateTime.value)
   .settings(Common.settings)
   .jsSettings(Common.jsSettings: _*)

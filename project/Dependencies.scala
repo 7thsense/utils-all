@@ -48,6 +48,7 @@ object Dependencies {
     val Netty3 = "3.10.6.Final"
     val Netty40 = "4.0.42.Final"
     val Netty41 = "4.1.5.Final"
+    val Octopus = "0.3.3"
     val Play = "2.6.11"
     val PlayJson = "2.6.9"
     val PlayMockWs = "2.6.0"
@@ -389,6 +390,12 @@ object Dependencies {
       "io.netty" % "netty-all" % Versions.Netty41
     )
   )
+
+  val Octopus =
+    Def.setting(Seq(
+      "com.github.krzemin" %%% "octopus-cats" % Versions.Octopus,
+      "com.github.krzemin" %%% "octopus" % Versions.Octopus
+    ))
 
   val Parquet = Def.setting(Seq("com.twitter" % "parquet" % Versions.Parquet))
 
