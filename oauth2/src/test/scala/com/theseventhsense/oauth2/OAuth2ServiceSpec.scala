@@ -1,19 +1,19 @@
 package com.theseventhsense.oauth2
 
 import com.theseventhsense.oauth2.OAuth2Provider.DefaultOAuth2Provider
-import com.theseventhsense.testing.UnitSpec
+import com.theseventhsense.testing.{AkkaUnitSpec, UnitSpec, WSClientFactory}
 import com.theseventhsense.utils.types.SSDateTime
 import mockws.MockWS
 import org.scalatest.concurrent.{IntegrationPatience, ScalaFutures}
 import play.api.libs.json.Json
 import play.api.mvc.Results._
 import play.api.mvc._
-
 import scala.concurrent.ExecutionContext.Implicits.global
 
 class OAuth2ServiceSpec
-    extends UnitSpec
+    extends AkkaUnitSpec
     with ScalaFutures
+    with WSClientFactory
     with IntegrationPatience {
   val testProvider = DefaultOAuth2Provider(
     name = "test",

@@ -1,19 +1,19 @@
 package com.theseventhsense.oauth2
 
-import javax.inject.{Inject, Named}
+import scala.concurrent.{ExecutionContext, Future}
+import scala.util.Try
 
-import cats.data.{EitherT, OptionT}
+import cats.data.EitherT
 import cats.implicits._
+import io.circe.syntax._
+import javax.inject.{Inject, Named}
+import play.api.libs.circe._
+import play.api.libs.ws.StandaloneWSClient
+import play.api.mvc._
+
 import com.theseventhsense.oauth2.OAuth2Codecs._
 import com.theseventhsense.utils.logging.Logging
 import com.theseventhsense.utils.oauth2.models.OAuth2State
-import io.circe.syntax._
-import play.api.libs.circe._
-import play.api.libs.ws.WSClient
-import play.api.mvc._
-
-import scala.concurrent.{ExecutionContext, Future}
-import scala.util.Try
 
 class OAuth2Request[A](val provider: OAuth2Provider, request: Request[A])
     extends WrappedRequest[A](request)
@@ -32,7 +32,7 @@ class OAuth2ClientController @Inject()(
   stateMapper: TOAuth2StateMapper,
   oAuth2Service: OAuth2Service,
   override val controllerComponents: ControllerComponents
-)(implicit val wsClient: WSClient)
+)(implicit val wsClient: StandaloneWSClient)
     extends BaseController
     with Circe
     with Logging {

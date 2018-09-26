@@ -1,10 +1,18 @@
 package com.theseventhsense.oauth2
 
 import java.net.URLEncoder
-import javax.inject.Inject
+
+import scala.collection.concurrent
+import scala.collection.immutable.ListMap
+import scala.concurrent.{ExecutionContext, Future}
 
 import cats.data.OptionT
 import cats.implicits._
+import io.circe.parser
+import javax.inject.Inject
+import play.api.libs.ws.{StandaloneWSClient, StandaloneWSResponse, WSAuthScheme}
+import play.api.libs.ws.DefaultBodyWritables._
+
 import com.theseventhsense.oauth2.OAuth2Codecs._
 import com.theseventhsense.utils.cats._
 import com.theseventhsense.utils.cats.syntax._
@@ -12,12 +20,6 @@ import com.theseventhsense.utils.logging.Logging
 import com.theseventhsense.utils.oauth2.models.OAuth2State
 import com.theseventhsense.utils.persistence.AkkaMessage
 import com.theseventhsense.utils.types.SSDateTime
-import io.circe.parser
-import play.api.libs.ws.{WSAuthScheme, WSClient, WSResponse}
-
-import scala.collection.concurrent
-import scala.collection.immutable.ListMap
-import scala.concurrent.{ExecutionContext, Future}
 
 object OAuth2Service extends Logging {
 
@@ -113,7 +115,7 @@ object OAuth2Service extends Logging {
   private def accessTokenRequest(
     provider: OAuth2Provider,
     payload: Map[String, Seq[String]]
-  )(implicit client: WSClient): Future[WSResponse] = {
+  )(implicit client: StandaloneWSClient): Future[StandaloneWSResponse] = {
     require(
       provider.clientId.isDefined,
       s"Provider configuration error for ${provider.name}: missing client id"
@@ -245,7 +247,7 @@ object OAuth2Service extends Logging {
   }
 
   private def parseAccessTokenResponse(
-    result: WSResponse
+    result: StandaloneWSResponse
   ): Either[Error, OAuth2TokenResponse] =
     result.status match {
       case 200 =>
@@ -288,7 +290,7 @@ object OAuth2Service extends Logging {
     */
   private def accessTokenViaPost(provider: OAuth2Provider,
                                  payload: Map[String, Seq[String]])(
-    implicit client: WSClient,
+    implicit client: StandaloneWSClient,
     ec: ExecutionContext
   ): Future[OAuth2TokenResponse] = {
     val resultFuture = accessTokenRequest(provider, payload)
@@ -308,7 +310,7 @@ object OAuth2Service extends Logging {
     * @return
     */
   def refreshTokenInfo(provider: OAuth2Provider, refreshToken: String)(
-    implicit client: WSClient,
+    implicit client: StandaloneWSClient,
     ec: ExecutionContext
   ): Future[Map[String, String]] =
     (for {
@@ -336,7 +338,7 @@ object OAuth2Service extends Logging {
   private def codeGrantAccessToken(provider: OAuth2Provider,
                                    redirectUri: String,
                                    code: String)(
-    implicit client: WSClient,
+    implicit client: StandaloneWSClient,
     ec: ExecutionContext
   ): Future[OAuth2TokenResponse] = {
     provider.requireTokenUrl()
@@ -365,7 +367,7 @@ object OAuth2Service extends Logging {
   def passwordGrantAccessToken(provider: OAuth2Provider,
                                username: String,
                                password: String)(
-    implicit client: WSClient,
+    implicit client: StandaloneWSClient,
     ec: ExecutionContext
   ): Future[OAuth2Credential] = {
     require(
@@ -398,7 +400,7 @@ object OAuth2Service extends Logging {
     * @return
     */
   private def clientCredentialsAccessToken(provider: OAuth2Provider)(
-    implicit client: WSClient,
+    implicit client: StandaloneWSClient,
     ec: ExecutionContext
   ): Future[OAuth2TokenResponse] = {
     provider.requireClientId()
@@ -436,7 +438,7 @@ object OAuth2Service extends Logging {
     */
   private def refresh(provider: OAuth2Provider,
                       oAuth2Credential: OAuth2Credential)(
-    implicit client: WSClient,
+    implicit client: StandaloneWSClient,
     ec: ExecutionContext,
     oAuth2Persistence: TOAuth2Persistence
   ): Future[OAuth2Credential] = {
@@ -462,7 +464,7 @@ object OAuth2Service extends Logging {
     */
   private def refreshViaClientCredentials(provider: OAuth2Provider,
                                           oAuth2Credential: OAuth2Credential)(
-    implicit client: WSClient,
+    implicit client: StandaloneWSClient,
     ec: ExecutionContext,
     oAuth2Persistence: TOAuth2Persistence
   ): Future[OAuth2Credential] = {
@@ -485,7 +487,7 @@ object OAuth2Service extends Logging {
     */
   private def refreshViaRefreshToken(provider: OAuth2Provider,
                                      oAuth2Credential: OAuth2Credential)(
-    implicit client: WSClient,
+    implicit client: StandaloneWSClient,
     ec: ExecutionContext,
     oAuth2Persistence: TOAuth2Persistence
   ): Future[OAuth2Credential] = {
@@ -574,7 +576,7 @@ class OAuth2Service @Inject()(providers: Set[OAuth2Provider])(
     * @return
     */
   def get(id: OAuth2Id)(
-    implicit client: WSClient,
+    implicit client: StandaloneWSClient,
     ec: ExecutionContext
   ): Future[(OAuth2Credential, OAuth2Provider)] = {
     val futureResponse = for {
@@ -646,7 +648,7 @@ class OAuth2Service @Inject()(providers: Set[OAuth2Provider])(
     * @return
     */
   def login(oAuth2Id: OAuth2Id, username: String, password: String)(
-    implicit client: WSClient,
+    implicit client: StandaloneWSClient,
     ec: ExecutionContext
   ): Future[OAuth2Credential] = synchronized {
     val updatedCredOptT = for {
@@ -674,7 +676,7 @@ class OAuth2Service @Inject()(providers: Set[OAuth2Provider])(
     */
   def refresh(
     oAuth2Id: OAuth2Id
-  )(implicit client: WSClient, ec: ExecutionContext): Future[OAuth2Credential] =
+  )(implicit client: StandaloneWSClient, ec: ExecutionContext): Future[OAuth2Credential] =
     refreshFutures.synchronized(
       refreshFutures.getOrElseUpdate(
         oAuth2Id,
@@ -750,7 +752,7 @@ class OAuth2Service @Inject()(providers: Set[OAuth2Provider])(
                                username: String,
                                password: String)(
     implicit ec: ExecutionContext,
-    wsClient: WSClient
+    wsClient: StandaloneWSClient
   ): Future[OAuth2Credential] = {
     OAuth2Service.passwordGrantAccessToken(provider, username, password)
   }
@@ -765,7 +767,7 @@ class OAuth2Service @Inject()(providers: Set[OAuth2Provider])(
     */
   def clientCredentialsGrantAccessToken(provider: OAuth2Provider)(
     implicit ec: ExecutionContext,
-    wsClient: WSClient
+    wsClient: StandaloneWSClient
   ): Future[OAuth2TokenResponse] =
     OAuth2Service.clientCredentialsAccessToken(provider)
 
@@ -783,7 +785,7 @@ class OAuth2Service @Inject()(providers: Set[OAuth2Provider])(
                            callbackUrl: String,
                            code: String)(
     implicit ec: ExecutionContext,
-    wsClient: WSClient
+    wsClient: StandaloneWSClient
   ): Future[OAuth2TokenResponse] = {
     OAuth2Service.codeGrantAccessToken(provider, callbackUrl, code)
   }

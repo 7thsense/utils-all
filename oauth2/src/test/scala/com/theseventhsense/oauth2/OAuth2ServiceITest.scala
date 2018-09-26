@@ -25,7 +25,7 @@ trait OAuth2ServiceITest
 
   val injector = Guice.createInjector(new OAuth2Module)
   implicit val service: OAuth2Service = injector.instance[OAuth2Service]
-  implicit val store = injector.instance[TOAuth2Persistence]
+  implicit val store: TOAuth2Persistence = injector.instance[TOAuth2Persistence]
   lazy val providers = injector.instance[Set[OAuth2Provider]]
 
   private def getCreds(providerName: String, refreshToken: String) = {

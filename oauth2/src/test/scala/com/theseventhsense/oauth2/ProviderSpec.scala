@@ -73,7 +73,7 @@ class MarketoOAuth2ServiceSpec extends AkkaUnitSpec with WSClientFactory {
     Option(Marketo.tokenUrlFromIdentityEndpoint(identityEndpointUri))
   )
   val oauth2Provider =
-    Marketo.baseProvider.withOverride(oAuth2CredentialsOverride)
+    Marketo.baseProvider(None).withOverride(oAuth2CredentialsOverride)
 
   "the marketo provider" should {
     "be able to construct a token url" in {

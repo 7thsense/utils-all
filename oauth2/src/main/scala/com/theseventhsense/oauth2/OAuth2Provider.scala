@@ -2,10 +2,11 @@ package com.theseventhsense.oauth2
 
 import cats.implicits._
 import com.github.easel.auth0.JWTAuthorizer
+
 import com.theseventhsense.utils.logging.Logging
 import io.circe.generic.semiauto.deriveDecoder
 import io.circe.parser
-import play.api.libs.ws.WSResponse
+import play.api.libs.ws.StandaloneWSResponse
 
 sealed trait OAuth2AccessType {
   def name: String
@@ -478,7 +479,7 @@ object OAuth2Provider {
     }
 
     object ResponseHandler extends OAuth2ResponseHandler.Http401 {
-      override def shouldRefresh(response: WSResponse): Boolean = {
+      override def shouldRefresh(response: StandaloneWSResponse): Boolean = {
         super.shouldRefresh(response) || shouldRefreshViaJsonBody(response.body)
       }
     }

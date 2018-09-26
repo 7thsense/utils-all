@@ -1,6 +1,7 @@
 package com.theseventhsense.oauth2
 
 import cats.implicits._
+
 import com.theseventhsense.oauth2.OAuth2Codecs._
 import com.theseventhsense.oauth2.OAuth2Provider.DefaultOAuth2Provider
 import com.theseventhsense.testing.UnitSpec
@@ -9,11 +10,10 @@ import io.circe.syntax._
 import org.mockito.Matchers
 import org.mockito.Mockito._
 import org.scalatest.concurrent.ScalaFutures
-import play.api.libs.ws.WSClient
+import play.api.libs.ws.{StandaloneWSClient, WSClient}
 import play.api.mvc._
 import play.api.test._
 import play.api.test.Helpers._
-
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
@@ -29,7 +29,8 @@ class OAuth2ClientControllerSpec extends UnitSpec with ScalaFutures {
   val Code = "def"
   val AccessToken = "access123"
 
-  implicit val wsClient: WSClient = mock[WSClient](RETURNS_SMART_NULLS)
+  implicit val wsClient: StandaloneWSClient =
+    mock[StandaloneWSClient](RETURNS_SMART_NULLS)
 
   "the OAuth2ClientController" when {
     "configured as a default provider" should {
@@ -96,7 +97,9 @@ class OAuth2ClientControllerSpec extends UnitSpec with ScalaFutures {
         .codeGrantAccessToken(provider, s"https://$Host$CallbackUrlPath", Code)
     ).thenReturn(Future.successful(tokenResponse))
     when(service.createOrUpdateCredentials(state, tokenResponse))
-      .thenReturn(Future.successful(Either.right[String, OAuth2Credential](cred)))
+      .thenReturn(
+        Future.successful(Either.right[String, OAuth2Credential](cred))
+      )
 
     val mapper = mock[TOAuth2StateMapper](RETURNS_SMART_NULLS)
     when(

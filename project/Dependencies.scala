@@ -50,6 +50,7 @@ object Dependencies {
     val Netty41 = "4.1.5.Final"
     val Octopus = "0.3.3"
     val Play = "2.7.0-M3"
+    val PlayWs = "2.0.0-M4"
     val PlayJson = "2.7.0-M1"
     val PlayMockWs = "2.6.0"
     val PlayCirce = "2609.1"
@@ -412,7 +413,12 @@ object Dependencies {
     Def.setting(Seq("com.typesafe.play" %% "play-json" % Versions.PlayJson))
 
   val PlayWs =
-    Def.setting(Seq("com.typesafe.play" %% "play-ws" % Versions.Play))
+    Def.setting(Seq(
+      "com.typesafe.play" %% "play-ws-standalone" % Versions.PlayWs,
+      "com.typesafe.play" %% "play-ws-standalone-xml" % Versions.PlayWs,
+      "com.typesafe.play" %% "play-ws-standalone-json" % Versions.PlayWs,
+      "com.typesafe.play" %% "play-ahc-ws-standalone" % Versions.PlayWs,
+    ))
 
   val PostgresDriver =
     Def.setting(Seq("org.postgresql" % "postgresql" % Versions.PostgresDriver))

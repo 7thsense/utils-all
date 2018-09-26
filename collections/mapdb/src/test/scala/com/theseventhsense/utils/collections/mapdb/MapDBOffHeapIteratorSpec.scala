@@ -7,17 +7,18 @@ import com.theseventhsense.utils.collections.mapdb.MapDBOffHeapIterator.Serializ
 import org.scalatest.{MustMatchers, WordSpec}
 
 /**
- * Created by erik on 2/11/16.
- */
+  * Created by erik on 2/11/16.
+  */
 class MapDBOffHeapIteratorSpec extends WordSpec with MustMatchers {
-  implicit val db = MapDBHelper.db
+  implicit val db: MapDBHelper.DBWrapper = MapDBHelper.db
 
   case class D(k: String, v: Int) extends Ordered[D] {
     // Required as of Scala 2.11 for reasons unknown - the companion to Ordered
     // should already be in implicit scope
     import scala.math.Ordered.orderingToOrdered
 
-    def compare(that: D): Int = (this.k, this.v) compare (that.k, that.v)
+    override def compare(that: D): Int =
+      Tuple2(this.k, this.v).compare(that.k->that.v)
   }
 
   val data: Set[D] = Set(D("a", 1), D("a", 2), D("b", 4), D("c", 5), D("b", 1))
@@ -32,7 +33,9 @@ class MapDBOffHeapIteratorSpec extends WordSpec with MustMatchers {
     "construct explicitly" in {
       val offHeapGroups = new MapDBOffHeapIterator(Set(D("a", 1)).sizedIterator)
       val groups = offHeapGroups.groupByOffHeap(dataGroupBy)
-      groups.toSeq.map { case (k, v) => k -> v.toSeq } must contain theSameElementsAs Map("a" -> Seq(D("a", 1)))
+      groups.toSeq.map { case (k, v) => k -> v.toSeq } must contain theSameElementsAs Map(
+        "a" -> Seq(D("a", 1))
+      )
     }
     "generate on-heap groups that match TraversableLike.groupBy" in {
       val onHeapGroups = data.sizedIterator.groupByOnHeap(dataGroupBy)
