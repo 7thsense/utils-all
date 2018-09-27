@@ -9,6 +9,7 @@ import com.theseventhsense.oauth2._
 
 case class OAuth2WSClient(id: OAuth2Id, context: OAuth2WSClient.Context) {
   import OAuth2WSClient._
+  import WireLogging._
 
   private implicit def logContext: LogContext = context.logContext
   private implicit def wsClient: StandaloneWSClient = context.wsClient
@@ -25,8 +26,8 @@ case class OAuth2WSClient(id: OAuth2Id, context: OAuth2WSClient.Context) {
         case (creds, provider) =>
           request
             .withAuthorization(id, creds.accessToken, provider)
-            .withOptionalTraceLogging()
-            .execute() flatMap { response: StandaloneWSResponse =>
+            .withOptionalWireLogging()
+            .execute().flatMap { response: StandaloneWSResponse =>
             if (provider.responseHandler.shouldRefresh(response)) {
               context.oAuth2Service.refresh(id).flatMap { credential =>
                 request
@@ -54,13 +55,13 @@ case class OAuth2WSClient(id: OAuth2Id, context: OAuth2WSClient.Context) {
         case (creds, provider) =>
           request
             .withAuthorization(id, creds.accessToken, provider)
-            .withOptionalTraceLogging()
+            .withOptionalWireLogging()
             .post(body) flatMap { response: StandaloneWSResponse =>
             if (provider.responseHandler.shouldRefresh(response)) {
               context.oAuth2Service.refresh(id).flatMap { credential =>
                 request
                   .withAuthorization(id, credential.accessToken, provider)
-                  .withOptionalTraceLogging()
+                  .withOptionalWireLogging()
                   .post(body)
               }
             } else {
@@ -79,18 +80,8 @@ case class OAuth2WSClient(id: OAuth2Id, context: OAuth2WSClient.Context) {
 object OAuth2WSClient {
   private[wsclient] val logger: LoggerTakingImplicit[LogContext] =
     Logger.takingImplicit[LogContext](this.getClass.getName)
-  private[wsclient] val wireLogger: LoggerTakingImplicit[LogContext] = Logger
-    .takingImplicit[LogContext](this.getClass.getPackage.getName + ".wire")
 
   implicit class RichWSRequest(request: StandaloneWSRequest) {
-    def withOptionalTraceLogging()(
-      implicit logContext: LogContext
-    ): StandaloneWSRequest = {
-      if (logContext.shouldWireLog(request))
-        request.withRequestFilter(new WSClientCurlRequestLogger(wireLogger))
-      else request
-    }
-
     def withAuthorization(oAuth2Id: OAuth2Id,
                           accessToken: String,
                           provider: OAuth2Provider): StandaloneWSRequest =
@@ -105,7 +96,6 @@ object OAuth2WSClient {
       } else {
         request.addHttpHeaders("Authorization" -> s"Bearer $accessToken")
       }
-
   }
 
   case class Context(wsClient: StandaloneWSClient,

@@ -8,11 +8,13 @@ import scala.concurrent.{ExecutionContext, Future}
 
 import cats.data.OptionT
 import cats.implicits._
+import com.typesafe.scalalogging.Logger
 import io.circe.parser
 import javax.inject.Inject
 import play.api.libs.ws.{StandaloneWSClient, StandaloneWSResponse, WSAuthScheme}
 import play.api.libs.ws.DefaultBodyWritables._
 
+import com.theseventhsense.clients.wsclient.{LogContext, WSClientLogContext}
 import com.theseventhsense.oauth2.OAuth2Codecs._
 import com.theseventhsense.utils.cats._
 import com.theseventhsense.utils.cats.syntax._
@@ -21,7 +23,10 @@ import com.theseventhsense.utils.oauth2.models.OAuth2State
 import com.theseventhsense.utils.persistence.AkkaMessage
 import com.theseventhsense.utils.types.SSDateTime
 
-object OAuth2Service extends Logging {
+object OAuth2Service {
+  import com.theseventhsense.clients.wsclient.WireLogging._
+  private[oauth2] val logger =
+    Logger.takingImplicit[LogContext](getClass.getName)
 
   sealed abstract class Error extends Throwable with Product with AkkaMessage
   sealed abstract class UnrecoverableError extends Error
@@ -57,14 +62,16 @@ object OAuth2Service extends Logging {
     * @param state
     * @return
     */
-  def authRequestURL(provider: OAuth2Provider,
-                     callbackUrl: String,
-                     state: OAuth2State,
-                     offline: Boolean = false,
-                     extraParams: Map[String, String] = Map.empty,
-                     forceApproval: Boolean = false,
-                     loginHint: Option[String] = None,
-                     next: Option[String] = None): String = {
+  def authRequestURL(
+    provider: OAuth2Provider,
+    callbackUrl: String,
+    state: OAuth2State,
+    offline: Boolean = false,
+    extraParams: Map[String, String] = Map.empty,
+    forceApproval: Boolean = false,
+    loginHint: Option[String] = None,
+    next: Option[String] = None
+  )(implicit logContext: LogContext): String = {
     require(
       provider.authUrl.isDefined,
       s"Provider configuration error for ${provider.name}: missing auth url"
@@ -112,10 +119,12 @@ object OAuth2Service extends Logging {
     * @param client
     * @return
     */
-  private def accessTokenRequest(
-    provider: OAuth2Provider,
-    payload: Map[String, Seq[String]]
-  )(implicit client: StandaloneWSClient): Future[StandaloneWSResponse] = {
+  private def accessTokenRequest(provider: OAuth2Provider,
+                                 payload: Map[String, Seq[String]])(
+    implicit client: StandaloneWSClient,
+    ec: ExecutionContext,
+    logContext: LogContext
+  ): Future[StandaloneWSResponse] = {
     require(
       provider.clientId.isDefined,
       s"Provider configuration error for ${provider.name}: missing client id"
@@ -164,7 +173,7 @@ object OAuth2Service extends Logging {
     logger.debug(
       "Requesting access token from " + request.url + " payload:" + localPayload
     )
-    request.post(localPayload)
+    request.withOptionalWireLogging().post(localPayload)
   }
 
   /**
@@ -177,7 +186,7 @@ object OAuth2Service extends Logging {
   private def credentialsFromResponse(
     oauth2State: OAuth2State,
     response: OAuth2TokenResponse
-  ): OAuth2Credential = {
+  )(implicit logContext: LogContext): OAuth2Credential = {
     val creds = OAuth2Credential(
       id = oauth2State.oAuth2Id.getOrElse(OAuth2Id.Default),
       providerName = oauth2State.providerName,
@@ -199,6 +208,7 @@ object OAuth2Service extends Logging {
 
   private def updateCredentials(oAuth2Credential: OAuth2Credential)(
     implicit ec: ExecutionContext,
+    logContext: LogContext,
     oAuth2Persistence: TOAuth2Persistence
   ): Future[OAuth2Credential] = {
     logger.debug(
@@ -210,6 +220,7 @@ object OAuth2Service extends Logging {
   private def createCredentials(oauth2State: OAuth2State,
                                 response: OAuth2TokenResponse)(
     implicit ec: ExecutionContext,
+    logContext: LogContext,
     oAuth2Persistence: TOAuth2Persistence
   ): Future[OAuth2Credential] = {
     oAuth2Persistence
@@ -225,17 +236,21 @@ object OAuth2Service extends Logging {
   private def createOrUpdateCredentials(oauth2State: OAuth2State,
                                         response: OAuth2TokenResponse)(
     implicit ec: ExecutionContext,
+    logContext: LogContext,
     oAuth2Persistence: TOAuth2Persistence
   ): Future[Either[String, OAuth2Credential]] = {
-    val existingCredentialsFutOpt: Future[Either[String, OAuth2Credential]] = oauth2State.oAuth2Id match {
-      case None =>
-        Future.successful(Either.left("No oauth2 credentials found"))
-      case Some(id) =>
-        logger.trace(
-          s"Loading existing OAuth2 credentials for ${oauth2State.oAuth2Id} - $id"
-        )
-        oAuth2Persistence.get(id).map(Either.fromOption(_, s"Error loading oAuth2Id $id"))
-    }
+    val existingCredentialsFutOpt: Future[Either[String, OAuth2Credential]] =
+      oauth2State.oAuth2Id match {
+        case None =>
+          Future.successful(Either.left("No oauth2 credentials found"))
+        case Some(id) =>
+          logger.trace(
+            s"Loading existing OAuth2 credentials for ${oauth2State.oAuth2Id} - $id"
+          )
+          oAuth2Persistence
+            .get(id)
+            .map(Either.fromOption(_, s"Error loading oAuth2Id $id"))
+      }
     existingCredentialsFutOpt.flatMap {
       case Left(e) =>
         logger.trace(s"Creating OAuth2 credentials for ${oauth2State.oAuth2Id}")
@@ -248,7 +263,7 @@ object OAuth2Service extends Logging {
 
   private def parseAccessTokenResponse(
     result: StandaloneWSResponse
-  ): Either[Error, OAuth2TokenResponse] =
+  )(implicit logContext: LogContext): Either[Error, OAuth2TokenResponse] =
     result.status match {
       case 200 =>
         val response = parser.decode[OAuth2TokenResponse](result.body)
@@ -291,7 +306,8 @@ object OAuth2Service extends Logging {
   private def accessTokenViaPost(provider: OAuth2Provider,
                                  payload: Map[String, Seq[String]])(
     implicit client: StandaloneWSClient,
-    ec: ExecutionContext
+    ec: ExecutionContext,
+    logContext: LogContext
   ): Future[OAuth2TokenResponse] = {
     val resultFuture = accessTokenRequest(provider, payload)
     resultFuture.map(parseAccessTokenResponse).flattenEither
@@ -311,7 +327,8 @@ object OAuth2Service extends Logging {
     */
   def refreshTokenInfo(provider: OAuth2Provider, refreshToken: String)(
     implicit client: StandaloneWSClient,
-    ec: ExecutionContext
+    ec: ExecutionContext,
+    logContext: LogContext
   ): Future[Map[String, String]] =
     (for {
       urlFunc <- provider.refreshTokenInfoUrl
@@ -319,6 +336,7 @@ object OAuth2Service extends Logging {
     } yield
       client
         .url(urlFunc(refreshToken))
+        .withOptionalWireLogging()
         .execute()
         .map(_.body)
         .map(mapFunc))
@@ -339,7 +357,8 @@ object OAuth2Service extends Logging {
                                    redirectUri: String,
                                    code: String)(
     implicit client: StandaloneWSClient,
-    ec: ExecutionContext
+    ec: ExecutionContext,
+    logContext: LogContext
   ): Future[OAuth2TokenResponse] = {
     provider.requireTokenUrl()
     val payload = Map(
@@ -368,7 +387,8 @@ object OAuth2Service extends Logging {
                                username: String,
                                password: String)(
     implicit client: StandaloneWSClient,
-    ec: ExecutionContext
+    ec: ExecutionContext,
+    logContext: LogContext
   ): Future[OAuth2Credential] = {
     require(
       provider.tokenUrl.isDefined,
@@ -401,7 +421,8 @@ object OAuth2Service extends Logging {
     */
   private def clientCredentialsAccessToken(provider: OAuth2Provider)(
     implicit client: StandaloneWSClient,
-    ec: ExecutionContext
+    ec: ExecutionContext,
+    logContext: LogContext
   ): Future[OAuth2TokenResponse] = {
     provider.requireClientId()
     provider.requireClientSecret()
@@ -421,6 +442,7 @@ object OAuth2Service extends Logging {
       s"Requesting authorization token via client credentials ${request.uri.toString}"
     )
     request
+      .withOptionalWireLogging()
       .get()
       .map(parseAccessTokenResponse)
       .flattenEither
@@ -440,6 +462,7 @@ object OAuth2Service extends Logging {
                       oAuth2Credential: OAuth2Credential)(
     implicit client: StandaloneWSClient,
     ec: ExecutionContext,
+    logContext: LogContext,
     oAuth2Persistence: TOAuth2Persistence
   ): Future[OAuth2Credential] = {
     provider.requireTokenUrl()
@@ -466,6 +489,7 @@ object OAuth2Service extends Logging {
                                           oAuth2Credential: OAuth2Credential)(
     implicit client: StandaloneWSClient,
     ec: ExecutionContext,
+    logContext: LogContext,
     oAuth2Persistence: TOAuth2Persistence
   ): Future[OAuth2Credential] = {
     logger.debug(s"Refreshing access token request via client credentials")
@@ -489,6 +513,7 @@ object OAuth2Service extends Logging {
                                      oAuth2Credential: OAuth2Credential)(
     implicit client: StandaloneWSClient,
     ec: ExecutionContext,
+    logContext: LogContext,
     oAuth2Persistence: TOAuth2Persistence
   ): Future[OAuth2Credential] = {
     oAuth2Credential.requireRefreshToken()
@@ -512,6 +537,7 @@ object OAuth2Service extends Logging {
   private def updateAccessToken(oAuth2Credential: OAuth2Credential)(
     response: OAuth2TokenResponse
   )(implicit ec: ExecutionContext,
+    logContext: LogContext,
     oAuth2Persistence: TOAuth2Persistence): Future[OAuth2Credential] = {
     val credential = oAuth2Credential.update(response)
     oAuth2Persistence.save(credential)
@@ -536,7 +562,8 @@ object OAuth2Service extends Logging {
     * A map of outstanding refresh requests. This prevents dogpiling the access server,
     * instead blocking all the clients and handing them the first future to be requested.
     */
-  private val refreshFutures: concurrent.Map[OAuth2Id, Future[OAuth2Credential]] =
+  private val refreshFutures
+    : concurrent.Map[OAuth2Id, Future[OAuth2Credential]] =
     concurrent.TrieMap.empty
 
 }
@@ -551,11 +578,14 @@ object OAuth2Service extends Logging {
   */
 @javax.inject.Singleton
 class OAuth2Service @Inject()(providers: Set[OAuth2Provider])(
-  implicit oAuth2Persistence: TOAuth2Persistence
-) extends Logging {
+  implicit
+  oAuth2Persistence: TOAuth2Persistence
+) {
   import OAuth2Service._
 
-  logger.debug(s"Initializing with ${providers.map(_.name).mkString(",")}")
+  logger.debug(s"Initializing with ${providers.map(_.name).mkString(",")}")(
+    WSClientLogContext()
+  )
 
   /**
     * Get a reference to a provider by name.
@@ -563,9 +593,8 @@ class OAuth2Service @Inject()(providers: Set[OAuth2Provider])(
     * @param providerName
     * @return
     */
-  def knownProvider(providerName: String): Option[OAuth2Provider] = {
+  def knownProvider(providerName: String): Option[OAuth2Provider] =
     providers.find(_.name == providerName)
-  }
 
   /**
     * Get the credential and provider definition for a given oAuth2Id.
@@ -577,7 +606,8 @@ class OAuth2Service @Inject()(providers: Set[OAuth2Provider])(
     */
   def get(id: OAuth2Id)(
     implicit client: StandaloneWSClient,
-    ec: ExecutionContext
+    ec: ExecutionContext,
+    logContext: LogContext
   ): Future[(OAuth2Credential, OAuth2Provider)] = {
     val futureResponse = for {
       cred <- oAuth2Persistence
@@ -633,9 +663,8 @@ class OAuth2Service @Inject()(providers: Set[OAuth2Provider])(
     * @param id
     * @return
     */
-  def delete(id: OAuth2Id)(implicit ec: ExecutionContext): Future[Int] = {
+  def delete(id: OAuth2Id)(implicit ec: ExecutionContext): Future[Int] =
     oAuth2Persistence.delete(id)
-  }
 
   /**
     * Log in via a username and password.
@@ -649,7 +678,8 @@ class OAuth2Service @Inject()(providers: Set[OAuth2Provider])(
     */
   def login(oAuth2Id: OAuth2Id, username: String, password: String)(
     implicit client: StandaloneWSClient,
-    ec: ExecutionContext
+    ec: ExecutionContext,
+    logContext: LogContext
   ): Future[OAuth2Credential] = synchronized {
     val updatedCredOptT = for {
       cred <- OptionT(oAuth2Persistence.get(oAuth2Id))
@@ -674,9 +704,11 @@ class OAuth2Service @Inject()(providers: Set[OAuth2Provider])(
     * @param ec
     * @return
     */
-  def refresh(
-    oAuth2Id: OAuth2Id
-  )(implicit client: StandaloneWSClient, ec: ExecutionContext): Future[OAuth2Credential] =
+  def refresh(oAuth2Id: OAuth2Id)(
+    implicit client: StandaloneWSClient,
+    ec: ExecutionContext,
+    logContext: LogContext
+  ): Future[OAuth2Credential] =
     refreshFutures.synchronized(
       refreshFutures.getOrElseUpdate(
         oAuth2Id,
@@ -734,10 +766,11 @@ class OAuth2Service @Inject()(providers: Set[OAuth2Provider])(
     * @param oAuth2TokenResponse
     * @return
     */
-  def createOrUpdateCredentials(
-    state: OAuth2State,
-    oAuth2TokenResponse: OAuth2TokenResponse
-  )(implicit ec: ExecutionContext): Future[Either[String, OAuth2Credential]] =
+  def createOrUpdateCredentials(state: OAuth2State,
+                                oAuth2TokenResponse: OAuth2TokenResponse)(
+    implicit ec: ExecutionContext,
+    logContext: LogContext
+  ): Future[Either[String, OAuth2Credential]] =
     OAuth2Service.createOrUpdateCredentials(state, oAuth2TokenResponse)
 
   /**
@@ -752,10 +785,10 @@ class OAuth2Service @Inject()(providers: Set[OAuth2Provider])(
                                username: String,
                                password: String)(
     implicit ec: ExecutionContext,
+    logContext: LogContext,
     wsClient: StandaloneWSClient
-  ): Future[OAuth2Credential] = {
+  ): Future[OAuth2Credential] =
     OAuth2Service.passwordGrantAccessToken(provider, username, password)
-  }
 
   /**
     * Request an access token via a client credentials grant.
@@ -767,6 +800,7 @@ class OAuth2Service @Inject()(providers: Set[OAuth2Provider])(
     */
   def clientCredentialsGrantAccessToken(provider: OAuth2Provider)(
     implicit ec: ExecutionContext,
+    logContext: LogContext,
     wsClient: StandaloneWSClient
   ): Future[OAuth2TokenResponse] =
     OAuth2Service.clientCredentialsAccessToken(provider)
@@ -785,8 +819,9 @@ class OAuth2Service @Inject()(providers: Set[OAuth2Provider])(
                            callbackUrl: String,
                            code: String)(
     implicit ec: ExecutionContext,
+    logContext: LogContext,
     wsClient: StandaloneWSClient
-  ): Future[OAuth2TokenResponse] = {
+  ): Future[OAuth2TokenResponse] =
     OAuth2Service.codeGrantAccessToken(provider, callbackUrl, code)
-  }
+
 }
