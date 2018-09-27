@@ -25,7 +25,7 @@ class WSClientCurlRequestFilter(logger: LoggerTakingImplicit[LogContext])(
           case (header, values) =>
             values.map(value => s"$header: $value")
         }
-        .mkString("\n") + "\n" + response.body.linesWithSeparators.take(20)
+        .mkString("\n") + "\n" + response.body.linesWithSeparators.take(20).mkString("\n")
   }
 
   def apply(executor: WSRequestExecutor): WSRequestExecutor = {
