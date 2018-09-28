@@ -14,11 +14,11 @@ import javax.inject.Inject
 import play.api.libs.ws.{StandaloneWSClient, StandaloneWSResponse, WSAuthScheme}
 import play.api.libs.ws.DefaultBodyWritables._
 
-import com.theseventhsense.clients.wsclient.{LogContext, WSClientLogContext}
 import com.theseventhsense.oauth2.OAuth2Codecs._
+import com.theseventhsense.utils.Verifications
 import com.theseventhsense.utils.cats._
 import com.theseventhsense.utils.cats.syntax._
-import com.theseventhsense.utils.logging.Logging
+import com.theseventhsense.utils.logging.{LogContext, Logging}
 import com.theseventhsense.utils.oauth2.models.OAuth2State
 import com.theseventhsense.utils.persistence.AkkaMessage
 import com.theseventhsense.utils.types.SSDateTime
@@ -125,15 +125,15 @@ object OAuth2Service {
     ec: ExecutionContext,
     logContext: LogContext
   ): Future[StandaloneWSResponse] = {
-    require(
+    Verifications.verify(
       provider.clientId.isDefined,
       s"Provider configuration error for ${provider.name}: missing client id"
     )
-    require(
+    Verifications.verify(
       provider.clientSecret.isDefined,
       s"Provider configuration error for ${provider.name}: missing client secret"
     )
-    require(
+    Verifications.verify(
       provider.tokenUrl.isDefined,
       s"Provider configuration error for ${provider.name}: missing token url"
     )
@@ -584,7 +584,7 @@ class OAuth2Service @Inject()(providers: Set[OAuth2Provider])(
   import OAuth2Service._
 
   logger.debug(s"Initializing with ${providers.map(_.name).mkString(",")}")(
-    WSClientLogContext()
+    OAuth2LogContext()
   )
 
   /**
@@ -663,7 +663,7 @@ class OAuth2Service @Inject()(providers: Set[OAuth2Provider])(
     * @param id
     * @return
     */
-  def delete(id: OAuth2Id)(implicit ec: ExecutionContext): Future[Int] =
+  def delete(id: OAuth2Id)(implicit ec: ExecutionContext, lc: LogContext): Future[Int] =
     oAuth2Persistence.delete(id)
 
   /**

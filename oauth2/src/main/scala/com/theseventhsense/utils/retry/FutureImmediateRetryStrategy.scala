@@ -1,8 +1,7 @@
 package com.theseventhsense.utils.retry
 
-import com.theseventhsense.utils.logging.Logging
+import com.theseventhsense.utils.logging.{LogContext, Logging}
 import play.api.PlayException
-
 import scala.concurrent.{ExecutionContext, Future}
 
 /**
@@ -10,14 +9,14 @@ import scala.concurrent.{ExecutionContext, Future}
   */
 class FutureImmediateRetryStrategy(
   maxCount: Int = 10
-)(implicit ec: ExecutionContext)
+)
     extends FutureRetryStrategy
     with Logging {
 
-  override def retry[T](producer: => Future[T]): Future[T] =
+  override def retry[T](producer: => Future[T])(implicit ec: ExecutionContext, lc: LogContext): Future[T] =
     recursiveRetry(producer)
 
-  def recursiveRetry[T](producer: => Future[T], count: Long = 1L): Future[T] = {
+  def recursiveRetry[T](producer: => Future[T], count: Long = 1L)(implicit ec: ExecutionContext, lc: LogContext): Future[T] = {
     producer.recoverWith {
       case t =>
         val newT =

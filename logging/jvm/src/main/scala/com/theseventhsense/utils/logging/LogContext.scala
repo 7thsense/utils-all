@@ -1,11 +1,11 @@
-package com.theseventhsense.clients.wsclient
+package com.theseventhsense.utils.logging
+
 import com.typesafe.scalalogging.CanLog
 import org.slf4j.MDC
-import play.api.libs.ws.StandaloneWSRequest
 
-abstract class LogContext extends Product with Serializable {
+abstract class LogContext extends Serializable {
   def context: Map[String, String]
-  def shouldWireLog: StandaloneWSRequest => Boolean
+  def shouldLog: Any => Boolean
 
   def keys: Iterable[String] = context.keys
 }
@@ -24,9 +24,9 @@ object LogContext {
       super.afterLog(a)
     }
   }
-}
 
-case class WSClientLogContext(context: Map[String, String] = Map.empty,
-                              shouldWireLog: StandaloneWSRequest => Boolean =
-                                _ => false)
-    extends LogContext
+  val empty: LogContext = new LogContext {
+    override val context: Map[String, String] = Map.empty
+    override val shouldLog: Any => Boolean = _ => false
+  }
+}

@@ -6,31 +6,36 @@ import org.apache.commons.compress.utils.Charsets
 import org.apache.hadoop.io.{LongWritable, Text}
 import org.apache.hadoop.mapred._
 
+import com.theseventhsense.utils.logging.LogContext
+
 /**
   * Created by erik on 10/27/16.
   */
-class TolerantTextInputFormat extends TextInputFormat {
+class TolerantTextInputFormat(implicit lc: LogContext) extends TextInputFormat {
   override def configure(conf: JobConf): Unit = super.configure(conf)
 
   override def getSplits(job: JobConf, numSplits: Int): Array[InputSplit] =
     try {
       super.getSplits(job, numSplits)
     } catch {
-      case ex: InvalidInputException ⇒ Array.empty
+      case ex: InvalidInputException => Array.empty
     }
 
   @throws[IOException]
   override def getRecordReader(
-      genericSplit: InputSplit,
-      job: JobConf,
-      reporter: Reporter): RecordReader[LongWritable, Text] = {
+    genericSplit: InputSplit,
+    job: JobConf,
+    reporter: Reporter
+  ): RecordReader[LongWritable, Text] = {
     reporter.setStatus(genericSplit.toString)
     val delimiter: String = job.get("textinputformat.record.delimiter")
     var recordDelimiterBytes: Array[Byte] = null
     if (null != delimiter)
       recordDelimiterBytes = delimiter.getBytes(Charsets.UTF_8)
-    new TolerantLineRecordReader(job,
-                                 genericSplit.asInstanceOf[FileSplit],
-                                 recordDelimiterBytes)
+    new TolerantLineRecordReader(
+      job,
+      genericSplit.asInstanceOf[FileSplit],
+      recordDelimiterBytes
+    )
   }
 }

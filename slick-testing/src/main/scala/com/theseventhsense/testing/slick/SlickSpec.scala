@@ -1,7 +1,7 @@
 package com.theseventhsense.testing.slick
 
 import com.theseventhsense.testing.AkkaUnitSpec
-import com.theseventhsense.utils.logging.Logging
+import com.theseventhsense.utils.logging.{LogContext, Logging}
 import com.theseventhsense.utils.persistence.db.HasDatabaseConfig
 import org.scalatest.BeforeAndAfterAll
 import org.scalatest.concurrent.IntegrationPatience
@@ -27,7 +27,7 @@ abstract class SlickSpec[P <: JdbcProfile]
   }
 
   override def afterAll: Unit = {
-    logger.debug(s"Shutting down test database connection to $databaseName")
+    logger.debug(s"Shutting down test database connection to $databaseName")(LogContext.empty)
     db.close
   }
 }

@@ -2,12 +2,11 @@ package com.theseventhsense.utils.logging
 
 import scala.collection.JavaConverters._
 
-import com.typesafe.scalalogging.LazyLogging
-import org.slf4j.Logger
+import com.typesafe.scalalogging.Logger
 import org.slf4j.LoggerFactory
 
 object Logging {
-  def audit(auditType: String): Logger = {
+  def audit(auditType: String): org.slf4j.Logger = {
     LoggerFactory.getLogger(s"audit.$auditType")
   }
 
@@ -43,4 +42,6 @@ object Logging {
   }
 }
 
-trait Logging extends LazyLogging
+trait Logging {
+  val logger = Logger.takingImplicit[LogContext](getClass.getName)
+}

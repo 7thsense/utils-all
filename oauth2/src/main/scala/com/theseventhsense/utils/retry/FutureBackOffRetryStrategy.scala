@@ -2,8 +2,8 @@ package com.theseventhsense.utils.retry
 
 import akka.actor.ActorSystem
 import akka.pattern.after
-import com.theseventhsense.utils.logging.Logging
 
+import com.theseventhsense.utils.logging.{LogContext, Logging}
 import scala.concurrent.duration._
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -16,9 +16,11 @@ class FutureBackOffRetryStrategyWithCriteria(
     extends FutureRetryStrategyWithCriteria
     with Logging {
 
-  override def retry[T](producer: => Future[T],
-                        passCriteria: (T) => Boolean,
-                        failCriteria: (Throwable) => Boolean): Future[T] =
+  override def retry[T](
+    producer: => Future[T],
+    passCriteria: T => Boolean,
+    failCriteria: Throwable => Boolean
+  )(implicit ec: ExecutionContext, lc: LogContext): Future[T] =
     recursiveRetry(
       producer,
       passCriteria = passCriteria,
@@ -29,9 +31,9 @@ class FutureBackOffRetryStrategyWithCriteria(
     producer: => Future[T],
     delay: FiniteDuration = firstDelay,
     count: Long = 1L,
-    passCriteria: (T) => Boolean,
-    failCriteria: (Throwable) => Boolean
-  ): Future[T] = {
+    passCriteria: T => Boolean,
+    failCriteria: Throwable => Boolean
+  )(implicit ec: ExecutionContext, lc: LogContext): Future[T] = {
     def delayAndRetry: Future[T] = {
       logger.trace(s"Delaying by $delay, try $count")
       after(delay, system.scheduler)(Future.successful(true)).flatMap { x =>
@@ -69,16 +71,19 @@ class FutureBackOffRetryStrategy(
   maxDelay: FiniteDuration = 1.hour,
   factor: Double = 2D,
   shouldRetry: Throwable => Boolean = _ => true
-)(implicit system: ActorSystem, ec: ExecutionContext)
+)(implicit system: ActorSystem)
     extends FutureRetryStrategy
     with Logging {
 
-  override def retry[T](producer: => Future[T]): Future[T] =
+  override def retry[T](producer: => Future[T])(implicit ec: ExecutionContext,
+                                                lc: LogContext): Future[T] =
     recursiveRetry(producer)
 
-  protected def recursiveRetry[T](producer: => Future[T],
-                                  delay: FiniteDuration = firstDelay,
-                                  count: Long = 1L): Future[T] = {
+  protected def recursiveRetry[T](
+    producer: => Future[T],
+    delay: FiniteDuration = firstDelay,
+    count: Long = 1L
+  )(implicit ec: ExecutionContext, lc: LogContext): Future[T] = {
     producer.recoverWith {
       case t if shouldRetry(t) =>
         if (count <= maxCount) {

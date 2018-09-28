@@ -6,6 +6,7 @@ import com.typesafe.scalalogging.{Logger, LoggerTakingImplicit}
 import play.api.libs.ws._
 
 import com.theseventhsense.oauth2._
+import com.theseventhsense.utils.logging.LogContext
 
 case class OAuth2WSClient(id: OAuth2Id, context: OAuth2WSClient.Context) {
   import OAuth2WSClient._
@@ -100,7 +101,7 @@ object OAuth2WSClient {
 
   case class Context(wsClient: StandaloneWSClient,
                      oAuth2Service: OAuth2Service,
-                     logContext: LogContext = WSClientLogContext())
+                     logContext: LogContext)
 
   def connect(id: OAuth2Id)(implicit context: Context): OAuth2WSClient =
     OAuth2WSClient(id, context)

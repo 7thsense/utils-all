@@ -5,7 +5,8 @@ import java.util.concurrent.TimeUnit
 import akka.actor.ActorSystem
 import akka.pattern.after
 import cats.implicits._
-import com.theseventhsense.utils.logging.Logging
+
+import com.theseventhsense.utils.logging.{LogContext, Logging}
 import com.theseventhsense.utils.throttle.models.RateBucket
 import com.theseventhsense.utils.types.SSDateTime
 import io.circe.Decoder.Result
@@ -14,7 +15,6 @@ import io.circe.generic.extras.semiauto._
 import io.circe.generic.extras.defaults._
 import io.circe.syntax._
 import org.joda.time.DateTime
-
 import scala.concurrent.duration._
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -186,14 +186,14 @@ class RateThrottleCalculator(buckets: Seq[RateBucket])
   * @param system
   * @param ec
   */
-class Throttle(calculator: ThrottleCalculator)(implicit system: ActorSystem,
-                                               ec: ExecutionContext)
-    extends Logging {
-  def executeThrottled[T](work: => Future[T]): Future[T] = {
+class Throttle(calculator: ThrottleCalculator)(implicit system: ActorSystem) extends Logging {
+  def executeThrottled[T](work: => Future[T])(
+    implicit ec: ExecutionContext,
+    lc: LogContext
+  ): Future[T] = {
     val duration = calculator.duration()
     logger.trace(s"Throttle duration: $duration")
-    after(duration, system.scheduler)(Future.successful(true)).flatMap { x =>
-      work
-    }
+    after(duration, system.scheduler)(Future.successful(true))
+      .flatMap(_ => work)
   }
 }

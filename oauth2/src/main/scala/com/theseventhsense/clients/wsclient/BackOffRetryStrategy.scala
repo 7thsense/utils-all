@@ -7,7 +7,7 @@ import akka.actor.ActorSystem
 import play.api.libs.ws.StandaloneWSResponse
 
 import com.theseventhsense.oauth2.OAuth2Service
-import com.theseventhsense.utils.logging.Logging
+import com.theseventhsense.utils.logging.{LogContext, Logging}
 import com.theseventhsense.utils.retry.FutureBackOffRetryStrategy
 
 sealed trait RetryFlags {
@@ -80,7 +80,7 @@ class BackOffRetryStrategy(
   maxDelay: FiniteDuration = 1.hour,
   shouldRetryThrowable: Throwable => Boolean =
     BackOffRetryStrategy.shouldRetryThrowable
-)(implicit system: ActorSystem, ec: ExecutionContext)
+)(implicit system: ActorSystem)
     extends RestClientRetryStrategy
     with Logging {
 
@@ -94,7 +94,9 @@ class BackOffRetryStrategy(
       shouldRetry = shouldRetryThrowable
     )
 
-  protected def shouldRetryResponse(response: StandaloneWSResponse): Future[StandaloneWSResponse] = {
+  protected def shouldRetryResponse(
+    response: StandaloneWSResponse
+  ): Future[StandaloneWSResponse] = {
     val shouldFlags = flags.filter(_.shouldRetry(response))
     if (shouldFlags.isEmpty) {
       Future.successful(response)
@@ -103,7 +105,10 @@ class BackOffRetryStrategy(
     }
   }
 
-  override def retry(producer: => Future[StandaloneWSResponse]): Future[StandaloneWSResponse] =
+  override def retry(producer: => Future[StandaloneWSResponse])(
+    implicit ec: ExecutionContext,
+    lc: LogContext
+  ): Future[StandaloneWSResponse] =
     genericRetryStrategy.retry(producer.flatMap(shouldRetryResponse))
 
 }

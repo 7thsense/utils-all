@@ -3,7 +3,7 @@ package com.theseventhsense.testing.slick
 import java.io.File
 import java.nio.file.Files
 
-import com.theseventhsense.utils.logging.Logging
+import com.theseventhsense.utils.logging.{LogContext, Logging}
 import com.theseventhsense.utils.persistence.db.HasDatabaseConfig
 import com.typesafe.config.{Config, ConfigFactory}
 import org.scalatest.{BeforeAndAfterAll, Suite}
@@ -37,14 +37,14 @@ trait OneH2DBPerSuite
     """.stripMargin
   )
   assert(config != null, "Config is null")
-  logger.debug(s"Creating H2 test database $path")
+  logger.debug(s"Creating H2 test database $path")(LogContext.empty)
 
   override def staticDbConfig: DatabaseConfig[JdbcProfile] = {
     DatabaseConfig.forConfig[JdbcProfile]("testdb", config)
   }
 
   override def afterAll: Unit = {
-    logger.info(s"Deleting test database $path")
+    logger.info(s"Deleting test database $path")(LogContext.empty)
     db.close()
     if (Files.exists(path)) {
       Files.delete(path)

@@ -2,9 +2,9 @@ package com.theseventhsense.clients.wsclient
 
 import akka.NotUsed
 import akka.stream.scaladsl.Source
-import com.theseventhsense.utils.logging.Logging
-import com.theseventhsense.utils.persistence.Keyed
 
+import com.theseventhsense.utils.logging.{LogContext, Logging}
+import com.theseventhsense.utils.persistence.Keyed
 import scala.collection.immutable
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -17,7 +17,7 @@ trait BatchLoader[T <: Keyed] extends Logging {
 
   private def loadAndExtract(
     lastBatch: UnfoldBatch
-  )(implicit ec: ExecutionContext): Future[Option[(UnfoldBatch, List[T])]] =
+  )(implicit ec: ExecutionContext, lc: LogContext): Future[Option[(UnfoldBatch, List[T])]] =
     if (lastBatch.isComplete && lastBatch.items.isEmpty) {
       logger.trace(s"Finished loading $lastBatch")
       Future.successful(None)
@@ -43,7 +43,7 @@ trait BatchLoader[T <: Keyed] extends Logging {
       )
     }
 
-  def source(implicit ec: ExecutionContext): Source[T, NotUsed] =
+  def source(implicit ec: ExecutionContext, lc: LogContext): Source[T, NotUsed] =
     Source
       .unfoldAsync(UnfoldBatch())(loadAndExtract)
       .mapConcat(identity)
@@ -59,7 +59,7 @@ trait ParentBatchLoader[A <: KeyedTimestamp, B <: KeyedTimestamp]
 
   def childLoaders(a: A): immutable.Seq[BatchLoader[B]]
 
-  def childSource(implicit ec: ExecutionContext): Source[B, NotUsed] = {
+  def childSource(implicit ec: ExecutionContext, lc: LogContext): Source[B, NotUsed] = {
     source
       .filter(state.filter)
       .grouped(MaxGroupSize)
@@ -78,7 +78,7 @@ trait ParentBatchLoader[A <: KeyedTimestamp, B <: KeyedTimestamp]
       }
   }
 
-  def childIterator: Iterator[B] =
+  def childIterator(implicit lc: LogContext): Iterator[B] =
     this.iterator
       .filter(state.filter)
       .toList

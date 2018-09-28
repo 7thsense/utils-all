@@ -1,84 +1,18 @@
 package com.theseventhsense.clients.wsclient
+import play.api.libs.json.Json
 
-import com.theseventhsense.utils.logging.Logging
+import com.theseventhsense.utils.logging.LogContext
 import com.theseventhsense.utils.types.SSDateTime
-import play.api.libs.json.{JsNumber, JsObject, JsValue, Json}
 import com.theseventhsense.udatetime.UDateTimeFormats._
-
-object StateHandler {
-  val CountKey = "count"
-}
-
-trait StateHandler[T <: KeyedTimestamp] extends Logging {
-
-  import StateHandler._
-
-  var lastKey: String = ""
-  var data: JsObject = Json.obj()
-
-  def update(obj: T): T
-
-  def update(key: String, timestamp: SSDateTime.Instant): Unit = {
-    val count: Long =
-      get(key, CountKey).getOrElse(JsNumber(0L)).asOpt[Long].getOrElse(0L)
-    set(key, CountKey, JsNumber(count + 1))
-    if (key != lastKey || count % 1000 == 0) {
-      val totalCount = data.values.foldLeft(0L) {
-        case (acc, item) =>
-          val count: Long = item.asOpt[JsObject] match {
-            case None => 0
-            case Some(obj: JsObject) =>
-              (obj \ CountKey).asOpt[Long].getOrElse(0L)
-          }
-          acc + count
-      }
-      lastKey = key
-      logger.trace(s"Updating state $key -> $timestamp, $count / $totalCount")
-    }
-  }
-
-  def get(key: String, subKey: String): Option[JsValue] = {
-    (data \ key).toOption.flatMap(obj => (obj \ subKey).toOption)
-  }
-
-  def set(key: String, subKey: String, value: JsValue): Unit = {
-    val keyObj: JsObject = (data \ key).asOpt[JsObject].getOrElse(Json.obj())
-    val newKeyObj: JsObject = keyObj ++ Json.obj(subKey -> value)
-    data += key -> newKeyObj
-  }
-
-  def filter(obj: T): Boolean
-
-  def ordering: Ordering[T]
-
-  def fromJson(json: JsValue): Boolean = {
-    json
-      .validate[JsObject]
-      .map { data =>
-        this.data = data
-        logger.trace(s"Loaded data: $data")
-        true
-      }
-      .recoverTotal { e =>
-        logger.warn("Failed to load state", e)
-        false
-      }
-  }
-
-  def toJson: JsValue = {
-    Json.toJson(data)
-  }
-}
 
 object LastModifiedStateHandler {
   val LastModifiedDate = "last-modified"
 }
 
 class LastModifiedStateHandler[T <: KeyedTimestamp] extends StateHandler[T] {
-
   import LastModifiedStateHandler._
 
-  override def filter(obj: T): Boolean = {
+  override def filter(obj: T)(implicit lc: LogContext): Boolean = {
     val lastModifiedOpt =
       get(obj.key, LastModifiedDate).flatMap(_.asOpt[SSDateTime.Instant])
     val result = lastModifiedOpt match {
@@ -99,7 +33,7 @@ class LastModifiedStateHandler[T <: KeyedTimestamp] extends StateHandler[T] {
     * - seen keys sorted by descending date
     * @return
     */
-  override def ordering: Ordering[T] = new Ordering[T] {
+  override def ordering(implicit lc: LogContext): Ordering[T] = new Ordering[T] {
     override def compare(x: T, y: T): Int = {
       val X = get(x.key, LastModifiedDate).flatMap(_.asOpt[SSDateTime.Instant])
       val Y = get(y.key, LastModifiedDate).flatMap(_.asOpt[SSDateTime.Instant])
@@ -123,7 +57,7 @@ class LastModifiedStateHandler[T <: KeyedTimestamp] extends StateHandler[T] {
     * Store the last modification date for obj
     * @param obj
     */
-  override def update(obj: T): T = {
+  override def update(obj: T)(implicit lc: LogContext): T = {
     update(obj.key, obj.timestamp)
     obj
   }
@@ -133,7 +67,7 @@ class LastModifiedStateHandler[T <: KeyedTimestamp] extends StateHandler[T] {
     * @param key
     * @param timestamp
     */
-  override def update(key: String, timestamp: SSDateTime.Instant): Unit = {
+  override def update(key: String, timestamp: SSDateTime.Instant)(implicit lc: LogContext): Unit = {
     def setTimestamp(): Unit = {
       set(key, LastModifiedDate, Json.toJson(timestamp))
     }

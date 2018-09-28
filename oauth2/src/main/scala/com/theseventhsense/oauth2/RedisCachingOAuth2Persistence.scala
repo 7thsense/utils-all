@@ -2,13 +2,15 @@ package com.theseventhsense.oauth2
 
 import akka.util.ByteString
 import cats.implicits._
+
 import com.theseventhsense.utils.types.SSDateTime
 import redis.{ByteStringFormatter, RedisClient}
 import io.circe._
 import io.circe.generic.semiauto._
 import io.circe.syntax._
-
 import scala.concurrent.{ExecutionContext, Future}
+
+import com.theseventhsense.utils.logging.LogContext
 
 /**
   * Created by erik on 2/20/17.
@@ -21,7 +23,7 @@ class RedisCachingOAuth2Persistence(persistence: TOAuth2Persistence,
 
   override def create(
     cred: OAuth2Credential
-  )(implicit ec: ExecutionContext): Future[OAuth2Credential] = {
+  )(implicit ec: ExecutionContext, lc: LogContext): Future[OAuth2Credential] = {
     persistence.create(cred).flatMap { c =>
       redis.set(idToKey(c.id), c).map(_ => c)
     }
@@ -29,7 +31,7 @@ class RedisCachingOAuth2Persistence(persistence: TOAuth2Persistence,
 
   override def save(
     cred: OAuth2Credential
-  )(implicit ec: ExecutionContext): Future[OAuth2Credential] = {
+  )(implicit ec: ExecutionContext, lc: LogContext): Future[OAuth2Credential] = {
     persistence.save(cred).flatMap { c =>
       redis.set(idToKey(c.id), c).map(_ => c)
     }
@@ -37,7 +39,7 @@ class RedisCachingOAuth2Persistence(persistence: TOAuth2Persistence,
 
   override def get(
     id: OAuth2Id
-  )(implicit ec: ExecutionContext): Future[Option[OAuth2Credential]] = {
+  )(implicit ec: ExecutionContext, lc: LogContext): Future[Option[OAuth2Credential]] = {
     redis.get[OAuth2Credential](idToKey(id)).flatMap {
       case Some(cred) if cred.accessExpires.forall(_.isAfter(SSDateTime.now)) =>
         Future.successful(Option(cred))
@@ -54,7 +56,7 @@ class RedisCachingOAuth2Persistence(persistence: TOAuth2Persistence,
 
   override def delete(
     id: OAuth2Id
-  )(implicit ec: ExecutionContext): Future[Int] = {
+  )(implicit ec: ExecutionContext, lc: LogContext): Future[Int] = {
     persistence.delete(id).flatMap { x =>
       redis.del(idToKey(id)).map(_ => x)
     }

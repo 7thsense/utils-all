@@ -2,13 +2,12 @@ package com.theseventhsense.testing.slick
 
 import java.sql.Connection
 
-import com.theseventhsense.utils.persistence.db.{
-  CustomPostgresDriver,
-  HasDatabaseConfig
-}
+import com.theseventhsense.utils.persistence.db.{CustomPostgresDriver, HasDatabaseConfig}
 import com.typesafe.config.ConfigFactory
 import slick.basic.DatabaseConfig
 import slick.jdbc.JdbcProfile
+
+import com.theseventhsense.utils.logging.LogContext
 
 trait OnePostgresDBPerSuite extends HasDatabaseConfig[CustomPostgresDriver] {
   self: SlickSpec[CustomPostgresDriver] ⇒
@@ -68,7 +67,7 @@ trait OnePostgresDBPerSuite extends HasDatabaseConfig[CustomPostgresDriver] {
       baseConfigStr
     }
     val config = ConfigFactory.parseString(configStr)
-    logger.trace(s"Using test database: $config")
+    logger.trace(s"Using test database: $config")(LogContext.empty)
     DatabaseConfig.forConfig[CustomPostgresDriver]("test", config)
   }
 
@@ -76,7 +75,7 @@ trait OnePostgresDBPerSuite extends HasDatabaseConfig[CustomPostgresDriver] {
     dbFromUrl(baseUrl, Option(adminUser), Option(adminPassword)).db
 
   override def createDb(): Unit = {
-    logger.info(s"Creating test database $databaseName")
+    logger.info(s"Creating test database $databaseName")(LogContext.empty)
     val q = s"""CREATE DATABASE "$databaseName";"""
     try {
       val conn: Connection = adminDb.source.createConnection()
@@ -88,7 +87,7 @@ trait OnePostgresDBPerSuite extends HasDatabaseConfig[CustomPostgresDriver] {
   }
 
   override def dropDb(): Unit = {
-    logger.info(s"Dropping test database $databaseName")
+    logger.info(s"Dropping test database $databaseName")(LogContext.empty)
     val q = s"""DROP DATABASE IF EXISTS "$databaseName";"""
     try {
       val conn: Connection = adminDb.source.createConnection()

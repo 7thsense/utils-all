@@ -1,6 +1,6 @@
 package com.theseventhsense.utils
 
-import com.theseventhsense.utils.logging.Logging
+import com.theseventhsense.utils.logging.{Logging, LogContext}
 
 /**
   * Created by erik on 7/21/16.
@@ -12,13 +12,13 @@ object Verifications extends Logging {
     .orElse(sys.env.get("VERIFICATIONS_ENABLED"))
     .map(_ != "false")
     .getOrElse(true)
-  def verify(criteria: => Boolean, message: => String): Unit = {
+
+  def verify(criteria: => Boolean, message: => String)(implicit lc: LogContext): Unit = {
     if (!criteria) {
       val msg = s"verification failed: $message"
+      logger.warn(msg)
       if (verificationsEnabled) {
         throw new VerificationError(msg)
-      } else {
-        logger.warn(msg)
       }
     }
   }

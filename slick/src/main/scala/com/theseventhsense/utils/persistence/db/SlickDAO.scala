@@ -1,11 +1,10 @@
 package com.theseventhsense.utils.persistence.db
 
-import com.theseventhsense.utils.logging.Logging
+import com.theseventhsense.utils.logging.{LogContext, Logging}
 import com.theseventhsense.utils.persistence._
 import slick.dbio
 import slick.jdbc.JdbcProfile
 import slick.sql.SqlStreamingAction
-
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.{ExecutionContext, Future}
 import scala.language.implicitConversions
@@ -35,7 +34,7 @@ trait SlickDAO[P <: JdbcProfile, Id <: BaseId, T <: Identified[Id, T]]
     * Asynchronously create this table and its dependencies. Generally
     * you will only want to use this method in tests.
     */
-  def createTable: Future[Unit] = {
+  def createTable(implicit lc: LogContext): Future[Unit] = {
     val createAction = table.schema.create
     logger.info(s"Creating table:\n${createAction.statements}")
     db.run(createAction)
@@ -116,7 +115,7 @@ trait SlickDAO[P <: JdbcProfile, Id <: BaseId, T <: Identified[Id, T]]
     db.run(q).map(_ => obj)
   }
 
-  def forceInsertOrUpdate(obj: T): Future[T] =
+  def forceInsertOrUpdate(obj: T)(implicit lc: LogContext): Future[T] =
     db.run((for {
       count <- table.filter(_.id === obj.id).length.result
       _ <- if (count == 0) {
@@ -132,7 +131,9 @@ trait SlickDAO[P <: JdbcProfile, Id <: BaseId, T <: Identified[Id, T]]
     db.run(q).map(_ => objs)
   }
 
-  def forceInsertOrUpdateBulk(obj: Set[T]): Future[Set[T]] =
+  def forceInsertOrUpdateBulk(
+    obj: Set[T]
+  )(implicit lc: LogContext): Future[Set[T]] =
     db.run({
         val ids = obj.map(_.id)
         for {
@@ -214,8 +215,8 @@ trait SlickDAO[P <: JdbcProfile, Id <: BaseId, T <: Identified[Id, T]]
     db.run(currSequenceValueCommand)
   }
 
-  def resetSequenceCommand(
-    next: Long
+  def resetSequenceCommand(next: Long)(
+    implicit lc: LogContext
   ): SqlStreamingAction[Vector[Long], Long, Effect]#ResultAction[Long,
                                                                  NoStream,
                                                                  Effect] = {
@@ -223,8 +224,8 @@ trait SlickDAO[P <: JdbcProfile, Id <: BaseId, T <: Identified[Id, T]]
     sql"SELECT setval('#$sequence', $next);".as[Long].head
   }
 
-  def resetSequenceIfNecessaryCommand(
-    next: Long
+  def resetSequenceIfNecessaryCommand(next: Long)(
+    implicit lc: LogContext
   ): dbio.DBIOAction[Long, NoStream, Effect with Effect] = {
     for {
       current <- currSequenceValueCommand

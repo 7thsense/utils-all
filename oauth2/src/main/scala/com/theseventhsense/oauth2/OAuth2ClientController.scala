@@ -11,13 +11,13 @@ import play.api.libs.circe._
 import play.api.libs.ws.StandaloneWSClient
 import play.api.mvc._
 
-import com.theseventhsense.clients.wsclient.{LogContext, WSClientLogContext}
 import com.theseventhsense.oauth2.OAuth2Codecs._
-import com.theseventhsense.utils.logging.Logging
+import com.theseventhsense.utils.logging.{Logging, LogContext}
 import com.theseventhsense.utils.oauth2.models.OAuth2State
 
 class OAuth2Request[A](val provider: OAuth2Provider, request: Request[A])
     extends WrappedRequest[A](request)
+
 
 object OAuth2ClientController {
   def cookieState(
@@ -54,11 +54,14 @@ class OAuth2ClientController @Inject()(
     }
   }
 
-  protected def action(providerName: String
+  protected def action(
+    providerName: String
   ): ActionBuilder[OAuth2Request, AnyContent] =
     new ActionBuilder[OAuth2Request, AnyContent] {
-      override def parser: BodyParser[AnyContent] = controllerComponents.parsers.default
-      override def executionContext: ExecutionContext = controllerComponents.executionContext
+      override def parser: BodyParser[AnyContent] =
+        controllerComponents.parsers.default
+      override def executionContext: ExecutionContext =
+        controllerComponents.executionContext
 
       def invokeBlock[A](
         request: Request[A],
@@ -159,7 +162,7 @@ class OAuth2ClientController @Inject()(
               loginHint = loginHint,
               extraParams = extraParams,
               next = next
-            )(WSClientLogContext())
+            )(OAuth2LogContext())
         }
         var response = Found(url)
         if (request.provider.flags.contains(RequiresStateCookie)) {
@@ -247,9 +250,9 @@ class OAuth2ClientController @Inject()(
   private def handleCodeCallback(state: OAuth2State,
                                  request: OAuth2Request[AnyContent],
                                  code: String): Future[Result] = {
-    implicit val logContext: LogContext = WSClientLogContext(
-        context = state.oAuth2Id.map(id => "oAuth2Id" -> id.id.toString).toMap
-      )
+    implicit val logContext: LogContext = OAuth2LogContext(
+      context = state.oAuth2Id.map(id => "oAuth2Id" -> id.id.toString).toMap
+    )
     oAuth2Service
       .codeGrantAccessToken(
         request.provider,
@@ -277,7 +280,7 @@ class OAuth2ClientController @Inject()(
     state: OAuth2State,
     request: OAuth2Request[AnyContent]
   ): Future[Result] = {
-    implicit val logContext: LogContext = WSClientLogContext(
+    implicit val logContext: LogContext = OAuth2LogContext(
       context = state.oAuth2Id.map(id => "oAuth2Id" -> id.id.toString).toMap
     )
     val provider = request.provider.withOverride(state.oAuth2Override.get)
@@ -339,7 +342,7 @@ class OAuth2ClientController @Inject()(
     state: OAuth2State,
     response: OAuth2TokenResponse
   ): Future[Result] = {
-    implicit val logContext: LogContext = WSClientLogContext(
+    implicit val logContext: LogContext = OAuth2LogContext(
       context = state.oAuth2Id.map(id => "oAuth2Id" -> id.id.toString).toMap
     )
     (for {
@@ -388,7 +391,7 @@ class OAuth2ClientController @Inject()(
     request: RequestHeader,
     message: Option[String] = None
   ): Future[Result] = {
-    implicit val logContext: LogContext = WSClientLogContext(
+    implicit val logContext: LogContext = OAuth2LogContext(
       context = state.oAuth2Id.map(id => "oAuth2Id" -> id.id.toString).toMap
     )
     val error = request
