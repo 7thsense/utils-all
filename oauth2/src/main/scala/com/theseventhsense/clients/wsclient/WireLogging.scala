@@ -22,7 +22,7 @@ object WireLogging {
     logger: LoggerTakingImplicit[TLogContext]
   )(implicit
     ec: ExecutionContext,
-    logContext: LogContext)
+    logContext: TLogContext)
       extends WSRequestFilter
       with CurlFormat {
     def asHttp(request: StandaloneWSRequest,
@@ -51,7 +51,7 @@ object WireLogging {
 
   implicit class WireLoggingWSRequest(request: StandaloneWSRequest) {
     def withOptionalWireLogging()(implicit ec: ExecutionContext,
-                                  logContext: LogContext): StandaloneWSRequest =
+                                  logContext: TLogContext): StandaloneWSRequest =
       if (logContext.shouldLog(request))
         request.withRequestFilter(new WSClientCurlRequestFilter(wireLogger))
       else request

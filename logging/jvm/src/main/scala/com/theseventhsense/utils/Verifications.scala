@@ -1,6 +1,7 @@
 package com.theseventhsense.utils
 
-import com.theseventhsense.utils.logging.{Logging, LogContext}
+import com.theseventhsense.utils.logging.Logging
+import com.theseventhsense.utils.models.TLogContext
 
 /**
   * Created by erik on 7/21/16.
@@ -13,7 +14,7 @@ object Verifications extends Logging {
     .map(_ != "false")
     .getOrElse(true)
 
-  def verify(criteria: => Boolean, message: => String)(implicit lc: LogContext): Unit = {
+  def verify(criteria: => Boolean, message: => String)(implicit lc: TLogContext): Unit = {
     if (!criteria) {
       val msg = s"verification failed: $message"
       logger.warn(msg)
