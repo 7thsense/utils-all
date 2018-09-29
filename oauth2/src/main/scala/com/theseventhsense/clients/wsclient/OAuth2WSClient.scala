@@ -7,6 +7,7 @@ import play.api.libs.ws._
 
 import com.theseventhsense.oauth2._
 import com.theseventhsense.utils.logging.LogContext
+import com.theseventhsense.utils.models.TLogContext
 
 case class OAuth2WSClient(id: OAuth2Id, context: OAuth2WSClient.Context) {
   import OAuth2WSClient._
@@ -79,8 +80,9 @@ case class OAuth2WSClient(id: OAuth2Id, context: OAuth2WSClient.Context) {
 }
 
 object OAuth2WSClient {
-  private[wsclient] val logger: LoggerTakingImplicit[LogContext] =
-    Logger.takingImplicit[LogContext](this.getClass.getName)
+  import LogContext._
+  private[wsclient] val logger: LoggerTakingImplicit[TLogContext] =
+    Logger.takingImplicit[TLogContext](this.getClass.getName)
 
   implicit class RichWSRequest(request: StandaloneWSRequest) {
     def withAuthorization(oAuth2Id: OAuth2Id,

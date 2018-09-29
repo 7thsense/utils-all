@@ -3,20 +3,28 @@ import scala.concurrent.ExecutionContext
 
 import com.typesafe.scalalogging.{Logger, LoggerTakingImplicit}
 import play.api.libs.ws.ahc.{CurlFormat, StandaloneAhcWSRequest}
-import play.api.libs.ws.{StandaloneWSRequest, StandaloneWSResponse, WSRequestExecutor, WSRequestFilter}
+import play.api.libs.ws.{
+  StandaloneWSRequest,
+  StandaloneWSResponse,
+  WSRequestExecutor,
+  WSRequestFilter
+}
 
 import com.theseventhsense.utils.logging.LogContext
+import com.theseventhsense.utils.models.TLogContext
 
 object WireLogging {
-  private[wsclient] val wireLogger: LoggerTakingImplicit[LogContext] = Logger
-    .takingImplicit[LogContext](this.getClass.getPackage.getName + ".wire")
+  import LogContext._
+  private[wsclient] val wireLogger: LoggerTakingImplicit[TLogContext] = Logger
+    .takingImplicit[TLogContext](this.getClass.getPackage.getName + ".wire")
 
-  private class WSClientCurlRequestFilter(logger: LoggerTakingImplicit[LogContext])(
-    implicit
+  private class WSClientCurlRequestFilter(
+    logger: LoggerTakingImplicit[TLogContext]
+  )(implicit
     ec: ExecutionContext,
-    logContext: LogContext
-  ) extends WSRequestFilter
-    with CurlFormat {
+    logContext: LogContext)
+      extends WSRequestFilter
+      with CurlFormat {
     def asHttp(request: StandaloneWSRequest,
                response: StandaloneWSResponse): String = {
       toCurl(request.asInstanceOf[StandaloneAhcWSRequest]) + "\n" +
@@ -26,7 +34,9 @@ object WireLogging {
             case (header, values) =>
               values.map(value => s"$header: $value")
           }
-          .mkString("\n") + "\n" + response.body.linesWithSeparators.take(20).mkString("\n")
+          .mkString("\n") + "\n" + response.body.linesWithSeparators
+        .take(20)
+        .mkString("\n")
     }
 
     def apply(executor: WSRequestExecutor): WSRequestExecutor = {
@@ -40,10 +50,8 @@ object WireLogging {
   }
 
   implicit class WireLoggingWSRequest(request: StandaloneWSRequest) {
-    def withOptionalWireLogging()(
-      implicit ec: ExecutionContext,
-      logContext: LogContext
-    ): StandaloneWSRequest =
+    def withOptionalWireLogging()(implicit ec: ExecutionContext,
+                                  logContext: LogContext): StandaloneWSRequest =
       if (logContext.shouldLog(request))
         request.withRequestFilter(new WSClientCurlRequestFilter(wireLogger))
       else request

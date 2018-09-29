@@ -19,14 +19,13 @@ import com.theseventhsense.utils.Verifications
 import com.theseventhsense.utils.cats._
 import com.theseventhsense.utils.cats.syntax._
 import com.theseventhsense.utils.logging.{LogContext, Logging}
+import com.theseventhsense.utils.models.TLogContext
 import com.theseventhsense.utils.oauth2.models.OAuth2State
 import com.theseventhsense.utils.persistence.AkkaMessage
 import com.theseventhsense.utils.types.SSDateTime
 
-object OAuth2Service {
+object OAuth2Service extends Logging {
   import com.theseventhsense.clients.wsclient.WireLogging._
-  private[oauth2] val logger =
-    Logger.takingImplicit[LogContext](getClass.getName)
 
   sealed abstract class Error extends Throwable with Product with AkkaMessage
   sealed abstract class UnrecoverableError extends Error
@@ -663,7 +662,8 @@ class OAuth2Service @Inject()(providers: Set[OAuth2Provider])(
     * @param id
     * @return
     */
-  def delete(id: OAuth2Id)(implicit ec: ExecutionContext, lc: LogContext): Future[Int] =
+  def delete(id: OAuth2Id)(implicit ec: ExecutionContext,
+                           lc: LogContext): Future[Int] =
     oAuth2Persistence.delete(id)
 
   /**
