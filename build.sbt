@@ -127,6 +127,7 @@ lazy val `utils-logging` = crossProject(JSPlatform, JVMPlatform)
   .crossType(CrossType.Full)
   .in(file("logging"))
   .settings(Common.settings)
+  .dependsOn(`utils-core`)
   .jsSettings(Common.jsSettings: _*)
   .jsSettings(libraryDependencies ++= Dependencies.Slogging.value)
   .jvmSettings(

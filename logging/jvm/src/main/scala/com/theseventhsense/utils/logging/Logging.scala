@@ -2,8 +2,10 @@ package com.theseventhsense.utils.logging
 
 import scala.collection.JavaConverters._
 
-import com.typesafe.scalalogging.Logger
+import com.typesafe.scalalogging.{Logger, LoggerTakingImplicit}
 import org.slf4j.LoggerFactory
+
+import com.theseventhsense.utils.models.TLogContext
 
 object Logging {
   def audit(auditType: String): org.slf4j.Logger = {
@@ -43,5 +45,8 @@ object Logging {
 }
 
 trait Logging {
-  val logger = Logger.takingImplicit[LogContext](getClass.getName)
+  import LogContext._
+
+  val logger: LoggerTakingImplicit[TLogContext] =
+    Logger.takingImplicit[TLogContext](getClass.getName)
 }
