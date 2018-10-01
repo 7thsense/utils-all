@@ -2,21 +2,21 @@ package com.theseventhsense.utils.throttle
 
 import java.util.concurrent.TimeUnit
 
+import scala.concurrent.duration._
+import scala.concurrent.{ExecutionContext, Future}
+
 import akka.actor.ActorSystem
 import akka.pattern.after
 import cats.implicits._
-
-import com.theseventhsense.utils.logging.{LogContext, Logging}
-import com.theseventhsense.utils.throttle.models.RateBucket
-import com.theseventhsense.utils.types.SSDateTime
 import io.circe.Decoder.Result
 import io.circe._
-import io.circe.generic.extras.semiauto._
-import io.circe.generic.extras.defaults._
 import io.circe.syntax._
 import org.joda.time.DateTime
-import scala.concurrent.duration._
-import scala.concurrent.{ExecutionContext, Future}
+
+import com.theseventhsense.utils.logging.Logging
+import com.theseventhsense.utils.models.TLogContext
+import com.theseventhsense.utils.throttle.models.RateBucket
+import com.theseventhsense.utils.types.SSDateTime
 
 /**
   * A ThrottleCalculator produces a duration for each time it is called. It is
@@ -189,7 +189,7 @@ class RateThrottleCalculator(buckets: Seq[RateBucket])
 class Throttle(calculator: ThrottleCalculator)(implicit system: ActorSystem) extends Logging {
   def executeThrottled[T](work: => Future[T])(
     implicit ec: ExecutionContext,
-    lc: LogContext
+    lc: TLogContext
   ): Future[T] = {
     val duration = calculator.duration()
     logger.trace(s"Throttle duration: $duration")

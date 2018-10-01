@@ -4,6 +4,7 @@ import play.api.libs.json.Json
 import com.theseventhsense.utils.logging.LogContext
 import com.theseventhsense.utils.types.SSDateTime
 import com.theseventhsense.udatetime.UDateTimeFormats._
+import com.theseventhsense.utils.models.TLogContext
 
 object LastModifiedStateHandler {
   val LastModifiedDate = "last-modified"
@@ -12,7 +13,7 @@ object LastModifiedStateHandler {
 class LastModifiedStateHandler[T <: KeyedTimestamp] extends StateHandler[T] {
   import LastModifiedStateHandler._
 
-  override def filter(obj: T)(implicit lc: LogContext): Boolean = {
+  override def filter(obj: T)(implicit lc: TLogContext): Boolean = {
     val lastModifiedOpt =
       get(obj.key, LastModifiedDate).flatMap(_.asOpt[SSDateTime.Instant])
     val result = lastModifiedOpt match {
@@ -33,7 +34,7 @@ class LastModifiedStateHandler[T <: KeyedTimestamp] extends StateHandler[T] {
     * - seen keys sorted by descending date
     * @return
     */
-  override def ordering(implicit lc: LogContext): Ordering[T] = new Ordering[T] {
+  override def ordering(implicit lc: TLogContext): Ordering[T] = new Ordering[T] {
     override def compare(x: T, y: T): Int = {
       val X = get(x.key, LastModifiedDate).flatMap(_.asOpt[SSDateTime.Instant])
       val Y = get(y.key, LastModifiedDate).flatMap(_.asOpt[SSDateTime.Instant])
@@ -57,7 +58,7 @@ class LastModifiedStateHandler[T <: KeyedTimestamp] extends StateHandler[T] {
     * Store the last modification date for obj
     * @param obj
     */
-  override def update(obj: T)(implicit lc: LogContext): T = {
+  override def update(obj: T)(implicit lc: TLogContext): T = {
     update(obj.key, obj.timestamp)
     obj
   }
@@ -67,7 +68,7 @@ class LastModifiedStateHandler[T <: KeyedTimestamp] extends StateHandler[T] {
     * @param key
     * @param timestamp
     */
-  override def update(key: String, timestamp: SSDateTime.Instant)(implicit lc: LogContext): Unit = {
+  override def update(key: String, timestamp: SSDateTime.Instant)(implicit lc: TLogContext): Unit = {
     def setTimestamp(): Unit = {
       set(key, LastModifiedDate, Json.toJson(timestamp))
     }

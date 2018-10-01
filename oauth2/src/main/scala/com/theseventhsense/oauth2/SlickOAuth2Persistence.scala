@@ -10,6 +10,7 @@ import play.api.db.slick.DatabaseConfigProvider
 import scala.concurrent.{ExecutionContext, Future}
 
 import com.theseventhsense.utils.logging.LogContext
+import com.theseventhsense.utils.models.TLogContext
 
 class SlickOAuth2Persistence @Inject()(dbConfigProvider: DatabaseConfigProvider)
     extends TOAuth2Persistence {
@@ -17,25 +18,25 @@ class SlickOAuth2Persistence @Inject()(dbConfigProvider: DatabaseConfigProvider)
 
   override def create(
     cred: OAuth2Credential
-  )(implicit ec: ExecutionContext, lc: LogContext): Future[OAuth2Credential] = {
+  )(implicit ec: ExecutionContext, lc: TLogContext): Future[OAuth2Credential] = {
     dao.create(from(cred)).map(asDomain)
   }
 
   override def save(
     cred: OAuth2Credential
-  )(implicit ec: ExecutionContext, lc: LogContext): Future[OAuth2Credential] = {
+  )(implicit ec: ExecutionContext, lc: TLogContext): Future[OAuth2Credential] = {
     dao.save(from(cred)).map(asDomain)
   }
 
   override def get(
     id: OAuth2Id
-  )(implicit ec: ExecutionContext, lc: LogContext): Future[Option[OAuth2Credential]] = {
+  )(implicit ec: ExecutionContext, lc: TLogContext): Future[Option[OAuth2Credential]] = {
     OptionT(dao.get(id)).map(asDomain).value
   }
 
   override def delete(
     id: OAuth2Id
-  )(implicit ec: ExecutionContext, lc: LogContext): Future[Int] = {
+  )(implicit ec: ExecutionContext, lc: TLogContext): Future[Int] = {
     dao.delete(id)
   }
 }

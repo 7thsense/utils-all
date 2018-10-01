@@ -13,10 +13,10 @@ case class OAuth2WSClient(id: OAuth2Id, context: OAuth2WSClient.Context) {
   import OAuth2WSClient._
   import WireLogging._
 
-  private implicit def logContext: LogContext = context.logContext
+  private implicit def logContext: TLogContext = context.logContext
   private implicit def wsClient: StandaloneWSClient = context.wsClient
 
-  def withLogContext(logContext: LogContext): OAuth2WSClient =
+  def withLogContext(logContext: TLogContext): OAuth2WSClient =
     copy(context = context.copy(logContext = logContext))
 
   def executeWithAuth(
@@ -103,7 +103,7 @@ object OAuth2WSClient {
 
   case class Context(wsClient: StandaloneWSClient,
                      oAuth2Service: OAuth2Service,
-                     logContext: LogContext)
+                     logContext: TLogContext)
 
   def connect(id: OAuth2Id)(implicit context: Context): OAuth2WSClient =
     OAuth2WSClient(id, context)

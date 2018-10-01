@@ -7,6 +7,8 @@ import com.theseventhsense.utils.logging.{LogContext, Logging}
 import scala.concurrent.duration._
 import scala.concurrent.{ExecutionContext, Future}
 
+import com.theseventhsense.utils.models.TLogContext
+
 class FutureBackOffRetryStrategyWithCriteria(
   firstDelay: FiniteDuration,
   maxCount: Int = 10,
@@ -20,7 +22,7 @@ class FutureBackOffRetryStrategyWithCriteria(
     producer: => Future[T],
     passCriteria: T => Boolean,
     failCriteria: Throwable => Boolean
-  )(implicit ec: ExecutionContext, lc: LogContext): Future[T] =
+  )(implicit ec: ExecutionContext, lc: TLogContext): Future[T] =
     recursiveRetry(
       producer,
       passCriteria = passCriteria,
@@ -33,7 +35,7 @@ class FutureBackOffRetryStrategyWithCriteria(
     count: Long = 1L,
     passCriteria: T => Boolean,
     failCriteria: Throwable => Boolean
-  )(implicit ec: ExecutionContext, lc: LogContext): Future[T] = {
+  )(implicit ec: ExecutionContext, lc: TLogContext): Future[T] = {
     def delayAndRetry: Future[T] = {
       logger.trace(s"Delaying by $delay, try $count")
       after(delay, system.scheduler)(Future.successful(true)).flatMap { x =>
@@ -76,14 +78,14 @@ class FutureBackOffRetryStrategy(
     with Logging {
 
   override def retry[T](producer: => Future[T])(implicit ec: ExecutionContext,
-                                                lc: LogContext): Future[T] =
+                                                lc: TLogContext): Future[T] =
     recursiveRetry(producer)
 
   protected def recursiveRetry[T](
     producer: => Future[T],
     delay: FiniteDuration = firstDelay,
     count: Long = 1L
-  )(implicit ec: ExecutionContext, lc: LogContext): Future[T] = {
+  )(implicit ec: ExecutionContext, lc: TLogContext): Future[T] = {
     producer.recoverWith {
       case t if shouldRetry(t) =>
         if (count <= maxCount) {

@@ -12,7 +12,8 @@ import play.api.libs.ws.StandaloneWSClient
 import play.api.mvc._
 
 import com.theseventhsense.oauth2.OAuth2Codecs._
-import com.theseventhsense.utils.logging.{Logging, LogContext}
+import com.theseventhsense.utils.logging.{LogContext, Logging}
+import com.theseventhsense.utils.models.TLogContext
 import com.theseventhsense.utils.oauth2.models.OAuth2State
 
 class OAuth2Request[A](val provider: OAuth2Provider, request: Request[A])
@@ -250,7 +251,7 @@ class OAuth2ClientController @Inject()(
   private def handleCodeCallback(state: OAuth2State,
                                  request: OAuth2Request[AnyContent],
                                  code: String): Future[Result] = {
-    implicit val logContext: LogContext = OAuth2LogContext(
+    implicit val logContext: TLogContext = OAuth2LogContext(
       context = state.oAuth2Id.map(id => "oAuth2Id" -> id.id.toString).toMap
     )
     oAuth2Service
@@ -280,7 +281,7 @@ class OAuth2ClientController @Inject()(
     state: OAuth2State,
     request: OAuth2Request[AnyContent]
   ): Future[Result] = {
-    implicit val logContext: LogContext = OAuth2LogContext(
+    implicit val logContext: TLogContext = OAuth2LogContext(
       context = state.oAuth2Id.map(id => "oAuth2Id" -> id.id.toString).toMap
     )
     val provider = request.provider.withOverride(state.oAuth2Override.get)
@@ -342,7 +343,7 @@ class OAuth2ClientController @Inject()(
     state: OAuth2State,
     response: OAuth2TokenResponse
   ): Future[Result] = {
-    implicit val logContext: LogContext = OAuth2LogContext(
+    implicit val logContext: TLogContext = OAuth2LogContext(
       context = state.oAuth2Id.map(id => "oAuth2Id" -> id.id.toString).toMap
     )
     (for {
@@ -391,7 +392,7 @@ class OAuth2ClientController @Inject()(
     request: RequestHeader,
     message: Option[String] = None
   ): Future[Result] = {
-    implicit val logContext: LogContext = OAuth2LogContext(
+    implicit val logContext: TLogContext = OAuth2LogContext(
       context = state.oAuth2Id.map(id => "oAuth2Id" -> id.id.toString).toMap
     )
     val error = request

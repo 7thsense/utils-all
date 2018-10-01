@@ -6,12 +6,12 @@ import org.apache.commons.compress.utils.Charsets
 import org.apache.hadoop.io.{LongWritable, Text}
 import org.apache.hadoop.mapred._
 
-import com.theseventhsense.utils.logging.LogContext
+import com.theseventhsense.utils.models.TLogContext
 
 /**
   * Created by erik on 10/27/16.
   */
-class TolerantTextInputFormat(implicit lc: LogContext) extends TextInputFormat {
+class TolerantTextInputFormat(implicit lc: TLogContext) extends TextInputFormat {
   override def configure(conf: JobConf): Unit = super.configure(conf)
 
   override def getSplits(job: JobConf, numSplits: Int): Array[InputSplit] =

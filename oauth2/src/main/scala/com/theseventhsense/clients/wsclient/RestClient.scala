@@ -10,6 +10,7 @@ import play.api.mvc.Codec
 
 import com.theseventhsense.clients.wsclient.RestClient.RestResponseDecoder
 import com.theseventhsense.utils.logging.{LogContext, Logging}
+import com.theseventhsense.utils.models.TLogContext
 import com.theseventhsense.utils.persistence.Keyed
 import com.theseventhsense.utils.retry.NoOpRetryStrategy
 import com.theseventhsense.utils.throttle.Throttle
@@ -74,19 +75,19 @@ class RestClient(val wsClient: StandaloneWSClient,
 
   def executeWithAuth(request: StandaloneWSRequest)(
     implicit ec: ExecutionContext,
-    lc: LogContext
+    lc: TLogContext
   ): Future[StandaloneWSResponse] =
     oAuth2Client.executeWithAuth(request)
 
   def executeWithAuthThrottled(request: StandaloneWSRequest)(
     implicit ec: ExecutionContext,
-    lc: LogContext
+    lc: TLogContext
   ): Future[StandaloneWSResponse] =
     throttle.executeThrottled(oAuth2Client.executeWithAuth(request))
 
   def executeWithAuthThrottledRetry(request: StandaloneWSRequest)(
     implicit ec: ExecutionContext,
-    lc: LogContext
+    lc: TLogContext
   ): Future[StandaloneWSResponse] = {
     val retriedResponse = retryStrategy.retry({
       executeWithAuthThrottled(request)
@@ -96,21 +97,21 @@ class RestClient(val wsClient: StandaloneWSClient,
 
   def postWithAuth[T: BodyWritable](request: StandaloneWSRequest, body: T)(
     implicit ec: ExecutionContext,
-    lc: LogContext
+    lc: TLogContext
   ): Future[StandaloneWSResponse] =
     oAuth2Client.postWithAuth(request, body)
 
   def postWithAuthThrottled[T: BodyWritable](request: StandaloneWSRequest,
                                              body: T)(
     implicit ec: ExecutionContext,
-    lc: LogContext
+    lc: TLogContext
   ): Future[StandaloneWSResponse] =
     throttle.executeThrottled(oAuth2Client.postWithAuth(request, body))
 
   def postWithAuthThrottledRetry[T: BodyWritable](request: StandaloneWSRequest,
                                                   body: T)(
     implicit ec: ExecutionContext,
-    lc: LogContext
+    lc: TLogContext
   ): Future[StandaloneWSResponse] = {
     val retriedResponse = retryStrategy.retry({
       postWithAuthThrottled(request, body)
@@ -152,7 +153,7 @@ class RestClient(val wsClient: StandaloneWSClient,
   def executeJsonWithAuthThrottledRetry[T](request: StandaloneWSRequest)(
     implicit
     ec: ExecutionContext,
-    lc: LogContext,
+    lc: TLogContext,
     restResponseDecoder: RestResponseDecoder[T]
   ): Future[T] = {
     val url = s"${request.url}?${queryString(request.queryString)}"

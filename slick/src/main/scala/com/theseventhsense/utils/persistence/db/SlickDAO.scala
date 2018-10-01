@@ -9,6 +9,8 @@ import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.{ExecutionContext, Future}
 import scala.language.implicitConversions
 
+import com.theseventhsense.utils.models.TLogContext
+
 trait SlickDAO[P <: JdbcProfile, Id <: BaseId, T <: Identified[Id, T]]
     extends SlickBaseDAO[P, Id, T]
     with StreamingDAO[P, Id, T]
@@ -34,7 +36,7 @@ trait SlickDAO[P <: JdbcProfile, Id <: BaseId, T <: Identified[Id, T]]
     * Asynchronously create this table and its dependencies. Generally
     * you will only want to use this method in tests.
     */
-  def createTable(implicit lc: LogContext): Future[Unit] = {
+  def createTable(implicit lc: TLogContext): Future[Unit] = {
     val createAction = table.schema.create
     logger.info(s"Creating table:\n${createAction.statements}")
     db.run(createAction)
@@ -115,7 +117,7 @@ trait SlickDAO[P <: JdbcProfile, Id <: BaseId, T <: Identified[Id, T]]
     db.run(q).map(_ => obj)
   }
 
-  def forceInsertOrUpdate(obj: T)(implicit lc: LogContext): Future[T] =
+  def forceInsertOrUpdate(obj: T)(implicit lc: TLogContext): Future[T] =
     db.run((for {
       count <- table.filter(_.id === obj.id).length.result
       _ <- if (count == 0) {
@@ -133,7 +135,7 @@ trait SlickDAO[P <: JdbcProfile, Id <: BaseId, T <: Identified[Id, T]]
 
   def forceInsertOrUpdateBulk(
     obj: Set[T]
-  )(implicit lc: LogContext): Future[Set[T]] =
+  )(implicit lc: TLogContext): Future[Set[T]] =
     db.run({
         val ids = obj.map(_.id)
         for {
@@ -216,7 +218,7 @@ trait SlickDAO[P <: JdbcProfile, Id <: BaseId, T <: Identified[Id, T]]
   }
 
   def resetSequenceCommand(next: Long)(
-    implicit lc: LogContext
+    implicit lc: TLogContext
   ): SqlStreamingAction[Vector[Long], Long, Effect]#ResultAction[Long,
                                                                  NoStream,
                                                                  Effect] = {
@@ -225,7 +227,7 @@ trait SlickDAO[P <: JdbcProfile, Id <: BaseId, T <: Identified[Id, T]]
   }
 
   def resetSequenceIfNecessaryCommand(next: Long)(
-    implicit lc: LogContext
+    implicit lc: TLogContext
   ): dbio.DBIOAction[Long, NoStream, Effect with Effect] = {
     for {
       current <- currSequenceValueCommand

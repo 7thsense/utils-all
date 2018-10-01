@@ -3,6 +3,7 @@ package com.theseventhsense.clients.wsclient
 import play.api.libs.json.{JsNumber, JsObject, JsValue, Json}
 
 import com.theseventhsense.utils.logging.{LogContext, Logging}
+import com.theseventhsense.utils.models.TLogContext
 import com.theseventhsense.utils.types.SSDateTime
 
 object StateHandler {
@@ -17,7 +18,7 @@ trait StateHandler[T <: KeyedTimestamp] extends Logging {
   var data: JsObject = Json.obj()
 
   def update(key: String,
-             timestamp: SSDateTime.Instant)(implicit lc: LogContext): Unit = {
+             timestamp: SSDateTime.Instant)(implicit lc: TLogContext): Unit = {
     val count: Long =
       get(key, CountKey).getOrElse(JsNumber(0L)).asOpt[Long].getOrElse(0L)
     set(key, CountKey, JsNumber(count + 1))
@@ -46,7 +47,7 @@ trait StateHandler[T <: KeyedTimestamp] extends Logging {
   }
 
 
-  def fromJson(json: JsValue)(implicit lc: LogContext): Boolean =
+  def fromJson(json: JsValue)(implicit lc: TLogContext): Boolean =
     json
       .validate[JsObject]
       .map { data =>
@@ -63,11 +64,11 @@ trait StateHandler[T <: KeyedTimestamp] extends Logging {
   def toJson: JsValue =
     Json.toJson(data)
 
-  def ordering(implicit lc: LogContext): Ordering[T]
+  def ordering(implicit lc: TLogContext): Ordering[T]
 
-  def update(obj: T)(implicit lc: LogContext): T
+  def update(obj: T)(implicit lc: TLogContext): T
 
-  def filter(obj: T)(implicit lc: LogContext): Boolean
+  def filter(obj: T)(implicit lc: TLogContext): Boolean
 
 }
 

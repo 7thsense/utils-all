@@ -8,6 +8,7 @@ import play.api.libs.ws.StandaloneWSResponse
 
 import com.theseventhsense.oauth2.OAuth2Service
 import com.theseventhsense.utils.logging.{LogContext, Logging}
+import com.theseventhsense.utils.models.TLogContext
 import com.theseventhsense.utils.retry.FutureBackOffRetryStrategy
 
 sealed trait RetryFlags {
@@ -107,7 +108,7 @@ class BackOffRetryStrategy(
 
   override def retry(producer: => Future[StandaloneWSResponse])(
     implicit ec: ExecutionContext,
-    lc: LogContext
+    lc: TLogContext
   ): Future[StandaloneWSResponse] =
     genericRetryStrategy.retry(producer.flatMap(shouldRetryResponse))
 
