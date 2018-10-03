@@ -5,8 +5,9 @@ import com.theseventhsense.testing.{AkkaUnitSpec, UnitSpec, WSClientFactory}
 import com.theseventhsense.testing.tags.ExternalAPI
 import com.theseventhsense.utils.oauth2.models.OAuth2State
 import org.scalatest.concurrent.ScalaFutures
-
 import scala.concurrent.Future
+
+import com.theseventhsense.utils.logging.LogContext
 
 trait ProviderSpec extends AkkaUnitSpec with WSClientFactory with ScalaFutures {
   def oauth2App: OAuth2Provider
@@ -16,6 +17,8 @@ trait ProviderSpec extends AkkaUnitSpec with WSClientFactory with ScalaFutures {
   def password: String
 
   implicit val persistence = new InMemoryOAuth2Persistence()
+
+  implicit val lc: LogContext = LogContext.empty
 
   s"the ${OAuth2Service.getClass.getSimpleName}" should {
     "be able to login" taggedAs ExternalAPI in {
@@ -28,6 +31,7 @@ trait ProviderSpec extends AkkaUnitSpec with WSClientFactory with ScalaFutures {
 }
 
 trait SalesforceOAuth2ServiceSpec extends AkkaUnitSpec {
+  implicit val lc: LogContext = LogContext.empty
   val stateMapper = new MemoryStateMapper()
   val consumerKey =
     "3MVG9fMtCkV6eLheWYI53C7Yz6VIquwpDeOmoOLsVloD_.R0176NWr.20Npy2t7iQ4JqxBLiedtVmb6dMk7KG"
@@ -62,6 +66,7 @@ trait SalesforceOAuth2ServiceSpec extends AkkaUnitSpec {
 }
 
 class MarketoOAuth2ServiceSpec extends AkkaUnitSpec with WSClientFactory {
+  implicit val lc: LogContext = LogContext.empty
   val stateMapper = new MemoryStateMapper()
   val clientId = "84b0086a-39e9-473b-9ddf-ee680f526686"
   val clientSecret = "SECRET"
@@ -100,6 +105,7 @@ class MarketoOAuth2ServiceSpec extends AkkaUnitSpec with WSClientFactory {
 }
 
 class HubspotOAuth2ServiceSpec extends UnitSpec {
+  implicit val lc: LogContext = LogContext.empty
   val service = OAuth2Service
   val oauth2App = DefaultOAuth2Provider(
     name = "hubspot",
@@ -132,6 +138,7 @@ class HubspotOAuth2ServiceSpec extends UnitSpec {
 }
 
 class GoogleOAuth2ServiceSpec extends UnitSpec {
+  implicit val lc: LogContext = LogContext.empty
   val service = OAuth2Service
   val oauth2App = DefaultOAuth2Provider(
     name = "google",
@@ -174,6 +181,7 @@ class GoogleOAuth2ServiceSpec extends UnitSpec {
 }
 
 class LinkedInOAuth2ServiceSpec extends UnitSpec {
+  implicit val lc: LogContext = LogContext.empty
   val service = OAuth2Service
   val oauth2App = DefaultOAuth2Provider(
     name = "linkedin",
@@ -204,6 +212,7 @@ class LinkedInOAuth2ServiceSpec extends UnitSpec {
 }
 
 trait ActOnOAuth2ServiceSpec extends UnitSpec {
+  implicit val lc: LogContext = LogContext.empty
   val service = OAuth2Service
   val oauth2App = ActOn.provider(
     name = "acton",
@@ -225,6 +234,7 @@ trait ActOnOAuth2ServiceSpec extends UnitSpec {
 
 // Twitter doesn't yet support Oauth2 for user auth
 class TwitterOAuth2ServiceSpec extends UnitSpec {
+  implicit val lc: LogContext = LogContext.empty
   val service = OAuth2Service
   val oauth2App = DefaultOAuth2Provider(
     name = "twitter",

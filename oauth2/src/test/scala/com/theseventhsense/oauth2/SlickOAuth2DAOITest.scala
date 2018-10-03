@@ -1,17 +1,17 @@
 package com.theseventhsense.oauth2
 
 import cats.implicits._
-import com.theseventhsense.testing.slick.{
-  OneH2DBPerSuite,
-  OnePostgresDBPerSuite,
-  SlickSpec
-}
+
+import com.theseventhsense.testing.slick.{OneH2DBPerSuite, OnePostgresDBPerSuite, SlickSpec}
 import com.theseventhsense.utils.persistence.db.CustomPostgresDriver
 import com.theseventhsense.utils.types.SSDateTime
 import slick.jdbc.JdbcProfile
 
+import com.theseventhsense.utils.logging.LogContext
+
 abstract class SlickOAuth2DAOITest[P <: CustomPostgresDriver]
     extends SlickSpec[P] {
+  implicit val lc: LogContext = LogContext.empty
   val ssNow = SSDateTime.Instant.parse("2014-01-01T00:00:00Z").toOption.value
   val dto1 = SlickOAuth2DAO.OAuth2CredentialDTO(
     OAuth2Id.Default,

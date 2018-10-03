@@ -17,6 +17,8 @@ import play.api.test.Helpers._
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
+import com.theseventhsense.utils.logging.LogContext
+
 class OAuth2ClientControllerSpec extends UnitSpec with ScalaFutures {
   val Host = "client.local"
   val RemoteHost = "server.local"
@@ -28,6 +30,8 @@ class OAuth2ClientControllerSpec extends UnitSpec with ScalaFutures {
   val State = "abc"
   val Code = "def"
   val AccessToken = "access123"
+
+  implicit val lc: LogContext = LogContext.empty
 
   implicit val wsClient: StandaloneWSClient =
     mock[StandaloneWSClient](RETURNS_SMART_NULLS)

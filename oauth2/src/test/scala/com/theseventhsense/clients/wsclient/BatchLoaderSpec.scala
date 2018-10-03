@@ -2,16 +2,21 @@ package com.theseventhsense.clients.wsclient
 
 import akka.stream.ActorMaterializer
 import akka.stream.scaladsl.Sink
+
 import com.theseventhsense.testing.AkkaUnitSpec
 import org.scalatest.concurrent.{IntegrationPatience, ScalaFutures}
-
 import scala.collection.immutable
 import scala.concurrent.Future
+
+import com.theseventhsense.utils.logging.LogContext
+import com.theseventhsense.utils.models.TLogContext
 
 class BatchLoaderSpec
     extends AkkaUnitSpec
     with ScalaFutures
     with IntegrationPatience {
+
+  implicit val lc: TLogContext = LogContext.empty
   final val BATCH_SIZE = 2
 
   case class A(id: Int) extends KeyedTimestamp {

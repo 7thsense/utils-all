@@ -3,10 +3,13 @@ package com.theseventhsense.utils.persistence.db
 import java.sql.SQLException
 
 import akka.stream.scaladsl.Sink
-import com.theseventhsense.testing.slick.{OnePostgresDBPerSuite, SlickSpec}
-import com.theseventhsense.utils.persistence.QueryMeta
 import slick.basic.DatabaseConfig
 import slick.jdbc.JdbcProfile
+
+import com.theseventhsense.testing.slick.{OnePostgresDBPerSuite, SlickSpec}
+import com.theseventhsense.utils.logging.LogContext
+import com.theseventhsense.utils.models.TLogContext
+import com.theseventhsense.utils.persistence.QueryMeta
 
 case class TestId(id: Long) extends AnyVal with BaseId
 
@@ -73,10 +76,9 @@ class SlickDAOSpec extends SlickSpec[CustomPostgresDriver] with OnePostgresDBPer
 
   private def max(a: Long, b: Long) = if (a > b) a else b
 
+  implicit val lc: TLogContext = LogContext.empty
+
   "the SlickDAO" should {
-    "be able to create tables" in {
-      dao.createTable.fValue
-    }
     "be able to create a value" in {
       item1 mustEqual TestDTO(TestId(1), "First value")
     }

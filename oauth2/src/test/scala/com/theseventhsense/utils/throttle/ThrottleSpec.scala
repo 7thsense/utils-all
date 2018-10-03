@@ -1,6 +1,7 @@
 package com.theseventhsense.utils.throttle
 
 import cats.scalatest.EitherValues
+
 import com.theseventhsense.testing.AkkaUnitSpec
 import com.theseventhsense.utils.throttle.models.RateBucket
 import com.theseventhsense.utils.types.SSDateTime
@@ -8,15 +9,17 @@ import io.circe._
 import io.circe.syntax._
 import org.joda.time.DateTime
 import org.scalatest.concurrent.{IntegrationPatience, ScalaFutures}
-
 import scala.concurrent.Future
 import scala.concurrent.duration._
+
+import com.theseventhsense.utils.logging.LogContext
 
 class ThrottleSpec
     extends AkkaUnitSpec
     with ScalaFutures
     with IntegrationPatience
     with EitherValues {
+  implicit val lc: LogContext = LogContext.empty
   val currentTime = SSDateTime.Instant.parse("2014-01-01T12:00:00Z").value
 
   "the Rate" should {

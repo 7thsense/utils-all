@@ -2,14 +2,16 @@ package com.theseventhsense.utils.retry
 
 import com.theseventhsense.testing.AkkaUnitSpec
 import com.theseventhsense.utils.types.SSDateTime
-
 import scala.concurrent.duration._
 import scala.concurrent.{Await, Future}
+
+import com.theseventhsense.utils.logging.LogContext
 
 /**
   * Created by erik on 3/3/16.
   */
 class GenericBackOffRetryStrategySpec extends AkkaUnitSpec {
+  implicit val lc: LogContext = LogContext.empty
   class FailingFuture(whenToSucceed: Int = 0) {
     val startTime = SSDateTime.now
     var lastCall = SSDateTime.now

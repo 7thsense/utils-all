@@ -1,10 +1,13 @@
 package com.theseventhsense.oauth2
 
 import com.google.inject.Guice
+
 import com.theseventhsense.testing.tags.ExternalAPI
 import com.theseventhsense.testing.{AkkaUnitSpec, WSClientFactory}
 import net.codingwell.scalaguice.InjectorExtensions._
 import org.scalatest.concurrent.{IntegrationPatience, ScalaFutures}
+
+import com.theseventhsense.utils.logging.LogContext
 
 trait OAuth2ServiceITest
     extends AkkaUnitSpec
@@ -22,6 +25,8 @@ trait OAuth2ServiceITest
   def actOnPassword: String
 
   def actOnCreds: OAuth2Credential
+
+  implicit val lc: LogContext = LogContext.empty
 
   val injector = Guice.createInjector(new OAuth2Module)
   implicit val service: OAuth2Service = injector.instance[OAuth2Service]

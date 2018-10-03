@@ -10,11 +10,15 @@ import play.api.mvc.Results._
 import play.api.mvc._
 import scala.concurrent.ExecutionContext.Implicits.global
 
+import com.theseventhsense.utils.logging.LogContext
+
 class OAuth2ServiceSpec
     extends AkkaUnitSpec
     with ScalaFutures
     with WSClientFactory
     with IntegrationPatience {
+  implicit val lc: LogContext = LogContext.empty
+
   val testProvider = DefaultOAuth2Provider(
     name = "test",
     clientId = Option("clientId"),
